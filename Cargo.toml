@@ -1,0 +1,11 @@
+[package]
+name = "window-enum-rs"
+version = "0.1.0"
+edition = "2024"
+license-file = "LICENSE"
+
+[dependencies]
+
+[target.'cfg(target_os = "windows")'.dependencies]
+
+[target.'cfg(target_os = "macos")'.dependencies]
