@@ -1,4 +1,4 @@
-# window-enum-rs
+# window-getter-rs
 This is a Rust library for retrieving information about the windows open on the OS.  
 **It is not production ready yet.**
 

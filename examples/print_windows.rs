@@ -1,5 +1,5 @@
 fn main() {
-    let windows = window_enum::get_windows().unwrap();
+    let windows = window_getter::get_windows().unwrap();
     println!("Found {} windows:\n", windows.len());
 
     for window in windows {
