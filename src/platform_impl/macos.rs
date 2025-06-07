@@ -1,0 +1,192 @@
+use objc2_core_foundation::{CFArray, CFDictionary, CFRetained, CFString, CFType};
+use objc2_core_graphics::{CGWindowListCopyWindowInfo, CGWindowListOption, kCGNullWindowID};
+
+use crate::{Error, Window};
+
+pub use bounds::PlatformBounds;
+pub use error::PlatformError;
+pub use window::PlatformWindow;
+pub use window_info::WindowInfo;
+
+pub fn get_windows() -> Result<Vec<Window>, Error> {
+    let list: CFRetained<CFArray<CFDictionary<CFString, CFType>>> = unsafe {
+        let list = CGWindowListCopyWindowInfo(CGWindowListOption::all(), kCGNullWindowID);
+        let Some(list) = list else {
+            return Err(Error::NoWindowEnvironment);
+        };
+
+        CFRetained::cast_unchecked(list)
+    };
+
+    let windows = list
+        .iter()
+        .map(|dict| Window(PlatformWindow(WindowInfo(dict))))
+        .collect();
+
+    Ok(windows)
+}
+
+mod bounds {
+    use objc2_core_foundation::CGRect;
+
+    pub struct PlatformBounds(pub(crate) CGRect);
+
+    impl PlatformBounds {
+        pub fn sys(&self) -> &CGRect {
+            &self.0
+        }
+
+        pub fn x(&self) -> f64 {
+            self.0.origin.x
+        }
+
+        pub fn y(&self) -> f64 {
+            self.0.origin.y
+        }
+
+        pub fn width(&self) -> f64 {
+            self.0.size.width
+        }
+
+        pub fn height(&self) -> f64 {
+            self.0.size.height
+        }
+    }
+}
+
+mod window {
+    use std::mem::MaybeUninit;
+
+    use objc2_core_foundation::CGRect;
+    use objc2_core_graphics::CGRectMakeWithDictionaryRepresentation;
+
+    use crate::platform_impl::{PlatformBounds, macos::PlatformError};
+
+    use super::WindowInfo;
+
+    pub struct PlatformWindow(pub(crate) WindowInfo);
+
+    impl PlatformWindow {
+        pub fn new(window_info: WindowInfo) -> Self {
+            Self(window_info)
+        }
+
+        pub fn title(&self) -> Option<String> {
+            self.0.name().map(|name| name.to_string())
+        }
+
+        pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
+            let bounds = self.0.bounds();
+            let mut rect = MaybeUninit::<CGRect>::uninit();
+
+            unsafe {
+                let result =
+                    CGRectMakeWithDictionaryRepresentation(Some(&bounds), rect.as_mut_ptr());
+
+                if result {
+                    Ok(PlatformBounds(rect.assume_init()))
+                } else {
+                    Err(PlatformError::InvalidWindowBounds)
+                }
+            }
+        }
+
+        pub fn owner_pid(&self) -> i32 {
+            self.0
+                .owner_pid()
+                .as_i32()
+                .expect("invalid owner PID value")
+        }
+
+        pub fn owner_name(&self) -> Option<String> {
+            self.0.owner_name().map(|name| name.to_string())
+        }
+    }
+}
+
+mod window_info {
+    use objc2_core_foundation::{CFBoolean, CFDictionary, CFNumber, CFRetained, CFString, CFType};
+
+    macro_rules! impl_window_info_getters {
+        ($(($name:ident, $return_type:ty, $key:ident)),*) => {
+            $(
+                pub fn $name(&self) -> CFRetained<$return_type> {
+                    let object = self
+                        .0
+                        .get(unsafe { objc2_core_graphics::$key })
+                        .expect(concat!("`", stringify!($key), "` should always be present"));
+
+                    const EXPECT: &str = concat!(
+                        "Expected a value `",
+                        stringify!($return_type),
+                        "` for the key `",
+                        stringify!($key),
+                        "`"
+                    );
+
+                    CFRetained::downcast(object).expect(EXPECT)
+                }
+            )*
+        };
+    }
+
+    macro_rules! impl_window_info_optional_getters {
+        ($(($name:ident, $return_type:ty, $key:ident)),*) => {
+            $(
+                pub fn $name(&self) -> Option<CFRetained<$return_type>> {
+                    let object = self
+                        .0
+                        .get(unsafe { objc2_core_graphics::$key })?;
+
+                    const EXPECT: &str = concat!(
+                        "Expected a value `",
+                        stringify!($return_type),
+                        "` for the key `",
+                        stringify!($key),
+                        "`"
+                    );
+
+                    Some(CFRetained::downcast(object).expect(EXPECT))
+                }
+            )*
+        };
+    }
+
+    pub struct WindowInfo(pub(super) CFRetained<CFDictionary<CFString, CFType>>);
+
+    impl WindowInfo {
+        pub fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
+            &self.0
+        }
+
+        impl_window_info_getters!(
+            (number, CFNumber, kCGWindowNumber),
+            (store_type, CFNumber, kCGWindowStoreType),
+            (layer, CFNumber, kCGWindowLayer),
+            (bounds, CFDictionary, kCGWindowBounds),
+            (sharing_state, CFNumber, kCGWindowSharingState),
+            (alpha, CFNumber, kCGWindowAlpha),
+            (owner_pid, CFNumber, kCGWindowOwnerPID),
+            (memory_usage, CFNumber, kCGWindowMemoryUsage)
+        );
+
+        impl_window_info_optional_getters!(
+            (owner_name, CFString, kCGWindowOwnerName),
+            (name, CFString, kCGWindowName),
+            (is_on_screen, CFBoolean, kCGWindowIsOnscreen),
+            (
+                backing_location_video_memory,
+                CFBoolean,
+                kCGWindowBackingLocationVideoMemory
+            )
+        );
+    }
+}
+
+mod error {
+    #[derive(Debug, thiserror::Error)]
+    pub enum PlatformError {
+        #[error("Failed to make window `CGRect` from dictionary representation.")]
+        InvalidWindowBounds,
+    }
+}
