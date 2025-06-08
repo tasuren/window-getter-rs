@@ -62,6 +62,7 @@ impl Window {
     /// # Platform-specific
     /// - **Windows**: If you don't have permission to access the owner name,
     ///   it will return [`Error::PermissionDenied`](crate::Error::PermissionDenied).
+    ///   Also, it will return the name of the executable file when owner name is available.
     /// - **macOS**: It will always return [`Ok`].
     pub fn owner_name(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]

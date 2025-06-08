@@ -123,6 +123,7 @@ mod window {
         }
 
         /// Returns the file name of the process that owns this window.
+        /// This will return the name of the executable file.
         pub fn owner_name(&self) -> Result<String, PlatformError> {
             let process_handle = self.owner_process_handle()?;
 
