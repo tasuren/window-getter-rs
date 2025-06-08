@@ -5,6 +5,7 @@ use crate::{Bounds, Error, platform_impl::PlatformWindow};
 pub struct Window(pub(crate) PlatformWindow);
 
 impl Window {
+    /// Retrieves the underlying platform-specific window.
     pub fn inner(&self) -> &PlatformWindow {
         &self.0
     }
@@ -13,7 +14,8 @@ impl Window {
     ///
     /// # Platform-specific
     /// - **Windows**: If you don't have permission to access the title,
-    ///   it will return [`Error`](crate::Error).
+    ///   it will return [`Error::PermissionDenied`](crate::Error::PermissionDenied).
+    /// - **macOS**: It will always return [`Ok`].
     pub fn title(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -40,6 +42,9 @@ impl Window {
     }
 
     /// Returns the process ID of the window's owner.
+    ///
+    /// # Platform-specific
+    /// **macOS**: It will always return [`Ok`].
     pub fn owner_pid(&self) -> Result<i32, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -56,7 +61,8 @@ impl Window {
     ///
     /// # Platform-specific
     /// - **Windows**: If you don't have permission to access the owner name,
-    ///   it will return [`Error`](crate::Error).
+    ///   it will return [`Error::PermissionDenied`](crate::Error::PermissionDenied).
+    /// - **macOS**: It will always return [`Ok`].
     pub fn owner_name(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {

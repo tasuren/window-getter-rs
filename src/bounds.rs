@@ -7,14 +7,17 @@ use crate::platform_impl::PlatformBounds;
 pub struct Bounds(pub(crate) PlatformBounds);
 
 impl Bounds {
+    /// Creates a new `Bounds` instance from the given platform-specific bounds.
     pub fn new(bounds: PlatformBounds) -> Self {
         Self(bounds)
     }
 
+    /// Returns the underlying platform-specific bounds.
     pub fn inner(&self) -> &PlatformBounds {
         &self.0
     }
 
+    /// Returns the x-coordinate of the top-left corner of the bounds.
     pub fn x(&self) -> f64 {
         #[cfg(target_os = "macos")]
         {
@@ -27,6 +30,7 @@ impl Bounds {
         }
     }
 
+    /// Returns the y-coordinate of the top-left corner of the bounds.
     pub fn y(&self) -> f64 {
         #[cfg(target_os = "macos")]
         {
@@ -39,6 +43,7 @@ impl Bounds {
         }
     }
 
+    /// Returns the width of the bounds.
     pub fn width(&self) -> f64 {
         #[cfg(target_os = "macos")]
         {
@@ -51,6 +56,7 @@ impl Bounds {
         }
     }
 
+    /// Returns the height of the bounds.
     pub fn height(&self) -> f64 {
         #[cfg(target_os = "macos")]
         {
