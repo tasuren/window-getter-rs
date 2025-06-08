@@ -29,30 +29,31 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 mod bounds {
     use objc2_core_foundation::CGRect;
 
+    /// A wrapper around a `CGRect` that represents the bounds of a window.
     pub struct PlatformBounds(pub(crate) CGRect);
 
     impl PlatformBounds {
-        pub fn new(rect: CGRect) -> Self {
+        pub const fn new(rect: CGRect) -> Self {
             Self(rect)
         }
 
-        pub fn sys(&self) -> &CGRect {
+        pub const fn cg_rect(&self) -> &CGRect {
             &self.0
         }
 
-        pub fn x(&self) -> f64 {
+        pub const fn x(&self) -> f64 {
             self.0.origin.x
         }
 
-        pub fn y(&self) -> f64 {
+        pub const fn y(&self) -> f64 {
             self.0.origin.y
         }
 
-        pub fn width(&self) -> f64 {
+        pub const fn width(&self) -> f64 {
             self.0.size.width
         }
 
-        pub fn height(&self) -> f64 {
+        pub const fn height(&self) -> f64 {
             self.0.size.height
         }
     }
@@ -68,11 +69,17 @@ mod window {
 
     use super::WindowInfo;
 
+    /// A wrapper around a window's information [WindowInfo](super::WindowInfo).
     pub struct PlatformWindow(pub(crate) WindowInfo);
 
     impl PlatformWindow {
-        pub fn new(window_info: WindowInfo) -> Self {
+        pub const fn new(window_info: WindowInfo) -> Self {
             Self(window_info)
+        }
+
+        /// Returns the underlying `WindowInfo` object.
+        pub const fn window_info(&self) -> &WindowInfo {
+            &self.0
         }
 
         pub fn title(&self) -> Option<String> {
@@ -157,6 +164,11 @@ mod window_info {
     }
 
     /// The wrapper for a window's dictionary representation.
+    ///
+    /// # See also
+    /// This struct represents a window's information and supports following values:
+    /// - [Required Window List Keys](https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc)
+    /// - [Optional Window List Keys](https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc)
     pub struct WindowInfo(pub(super) CFRetained<CFDictionary<CFString, CFType>>);
 
     impl WindowInfo {
@@ -173,7 +185,7 @@ mod window_info {
             Self(dict)
         }
 
-        pub fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
+        pub const fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
             &self.0
         }
 

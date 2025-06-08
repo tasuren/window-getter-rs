@@ -1,7 +1,7 @@
 #[cfg(target_os = "macos")]
-mod macos;
+pub mod macos;
 #[cfg(target_os = "windows")]
-mod windows;
+pub mod windows;
 
 #[cfg(target_os = "macos")]
 pub use macos::{PlatformBounds, PlatformError, PlatformWindow, get_windows};
