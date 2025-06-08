@@ -1,6 +1,6 @@
 fn main() {
     let windows = window_getter::get_windows().unwrap();
-    println!("Found {} windows:\n", windows.len());
+    println!("Found {} windows:", windows.len());
 
     for window in windows {
         println!("\n{:?}", window.title());
