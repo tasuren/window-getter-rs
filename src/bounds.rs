@@ -10,19 +10,51 @@ impl Bounds {
     }
 
     pub fn x(&self) -> f64 {
-        self.0.x().into()
+        #[cfg(target_os = "macos")]
+        {
+            self.0.x()
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            self.0.x().into()
+        }
     }
 
     pub fn y(&self) -> f64 {
-        self.0.y().into()
+        #[cfg(target_os = "macos")]
+        {
+            self.0.y()
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            self.0.y().into()
+        }
     }
 
     pub fn width(&self) -> f64 {
-        self.0.width().into()
+        #[cfg(target_os = "macos")]
+        {
+            self.0.width()
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            self.0.width().into()
+        }
     }
 
     pub fn height(&self) -> f64 {
-        self.0.height().into()
+        #[cfg(target_os = "macos")]
+        {
+            self.0.height()
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            self.0.height().into()
+        }
     }
 }
 
