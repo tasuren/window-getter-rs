@@ -2,6 +2,19 @@
 This is a Rust library for retrieving information about the windows open on the OS.  
 **It is not production ready yet.**
 
+## Examples
+```rust
+fn main() {
+    let windows = window_getter::get_windows().unwrap();
+
+    for window in windows {
+        if let Ok(Some(title)) = window.title() {
+            println!("{title}");
+        }
+    }
+}
+```
+
 ## ToDo
 First release todos:
 - [x] macOS
