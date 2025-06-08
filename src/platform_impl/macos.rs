@@ -8,6 +8,7 @@ pub use error::PlatformError;
 pub use window::PlatformWindow;
 pub use window_info::WindowInfo;
 
+/// Retrieves a list of all open windows on the system.
 pub fn get_windows() -> Result<Vec<Window>, Error> {
     let list: CFRetained<CFArray<CFDictionary<CFString, CFType>>> = unsafe {
         let list = CGWindowListCopyWindowInfo(CGWindowListOption::all(), kCGNullWindowID);
@@ -73,19 +74,22 @@ mod window {
     pub struct PlatformWindow(pub(crate) WindowInfo);
 
     impl PlatformWindow {
+        /// Creates a new [`PlatformWindow`] from a [`WindowInfo`](super::WindowInfo).
         pub const fn new(window_info: WindowInfo) -> Self {
             Self(window_info)
         }
 
-        /// Returns the underlying `WindowInfo` object.
+        /// Returns the underlying [`WindowInfo`](super::WindowInfo) object.
         pub const fn window_info(&self) -> &WindowInfo {
             &self.0
         }
 
+        /// Returns the window's title.
         pub fn title(&self) -> Option<String> {
             self.0.name().map(|name| name.to_string())
         }
 
+        /// Returns the bounds of the window as a [`PlatformBounds`](super::PlatformError).
         pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
             let bounds = self.0.bounds();
             let mut rect = MaybeUninit::<CGRect>::uninit();
@@ -102,6 +106,7 @@ mod window {
             }
         }
 
+        /// Returns the process ID of the window's owner.
         pub fn owner_pid(&self) -> i32 {
             self.0
                 .owner_pid()
@@ -109,6 +114,7 @@ mod window {
                 .expect("invalid owner PID value")
         }
 
+        /// Returns the name of the process that owns the window.
         pub fn owner_name(&self) -> Option<String> {
             self.0.owner_name().map(|name| name.to_string())
         }
@@ -214,9 +220,17 @@ mod window_info {
 }
 
 mod error {
+    /// Low-level errors that can occur when interacting with the platform-specific API.
     #[derive(Debug, thiserror::Error)]
     pub enum PlatformError {
+        /// Represents a situation when the window bounds cannot be used.
         #[error("Failed to make window `CGRect` from dictionary representation.")]
         InvalidWindowBounds,
+    }
+
+    impl From<PlatformError> for crate::Error {
+        fn from(error: PlatformError) -> Self {
+            Self::PlatformSpecificError(error)
+        }
     }
 }

@@ -2,9 +2,15 @@ use std::fmt::Debug;
 
 use crate::platform_impl::PlatformBounds;
 
+/// A wrapper around the platform-specific bounds of a window.
+/// This struct provides a unified interface for accessing the bounds of a window,
 pub struct Bounds(pub(crate) PlatformBounds);
 
 impl Bounds {
+    pub fn new(bounds: PlatformBounds) -> Self {
+        Self(bounds)
+    }
+
     pub fn inner(&self) -> &PlatformBounds {
         &self.0
     }

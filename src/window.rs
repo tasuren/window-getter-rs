@@ -1,5 +1,7 @@
 use crate::{Bounds, Error, platform_impl::PlatformWindow};
 
+/// A wrapper around a platform-specific window.
+/// This struct provides a cross-platform interface to interact with window properties.
 pub struct Window(pub(crate) PlatformWindow);
 
 impl Window {
@@ -7,6 +9,11 @@ impl Window {
         &self.0
     }
 
+    /// Returns the title of the window.
+    ///
+    /// # Platform-specific
+    /// - **Windows**: If you don't have permission to access the title,
+    ///   it will return [`Error`](crate::Error).
     pub fn title(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -19,6 +26,7 @@ impl Window {
         }
     }
 
+    /// Returns the bounds of the window.
     pub fn bounds(&self) -> Result<Bounds, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -31,6 +39,7 @@ impl Window {
         }
     }
 
+    /// Returns the process ID of the window's owner.
     pub fn owner_pid(&self) -> Result<i32, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -43,6 +52,11 @@ impl Window {
         }
     }
 
+    /// Returns the name of the process that owns the window.
+    ///
+    /// # Platform-specific
+    /// - **Windows**: If you don't have permission to access the owner name,
+    ///   it will return [`Error`](crate::Error).
     pub fn owner_name(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {
