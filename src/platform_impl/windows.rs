@@ -24,8 +24,7 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
         windows::Win32::UI::WindowsAndMessaging::EnumWindows(
             Some(enum_windows_callback),
             LPARAM(&mut windows as *const Vec<Window> as _),
-        )
-        .map_err(PlatformError::from)?
+        )?
     };
 
     Ok(windows)
@@ -72,7 +71,7 @@ mod window {
                     // If the length is 0 and error is success,
                     // it means the window has no title.
                     Foundation::S_OK => Ok(None),
-                    _ => Err(raw.into()),
+                    _ => Err(raw),
                 };
             }
 
@@ -98,7 +97,7 @@ mod window {
                 unsafe { WindowsAndMessaging::GetWindowThreadProcessId(self.0, Some(&mut pid)) };
 
             if thread == 0 {
-                Err(windows::core::Error::from_win32().into())
+                Err(windows::core::Error::from_win32())
             } else {
                 Ok(pid as _)
             }
@@ -134,7 +133,7 @@ mod window {
             };
 
             if length == 0 {
-                return Err(windows::core::Error::from_win32().into());
+                return Err(windows::core::Error::from_win32());
             }
 
             Ok(String::from_utf16_lossy(&buffer[..length as usize]))
@@ -159,10 +158,12 @@ mod bounds {
             &self.0
         }
 
+        /// Returns the x-coordinate of the bounds.
         pub fn x(&self) -> i32 {
             self.0.left
         }
 
+        /// Returns the y-coordinate of the bounds.
         pub fn y(&self) -> i32 {
             self.0.top
         }
@@ -181,18 +182,22 @@ mod bounds {
             self.0.bottom - self.0.top
         }
 
+        /// Returns the left coordinate of the bounds.
         pub const fn left(&self) -> i32 {
             self.0.left
         }
 
+        /// Returns the top coordinate of the bounds.
         pub const fn top(&self) -> i32 {
             self.0.top
         }
 
+        /// Returns the right coordinate of the bounds.
         pub const fn right(&self) -> i32 {
             self.0.right
         }
 
+        /// Returns the bottom coordinate of the bounds.
         pub const fn bottom(&self) -> i32 {
             self.0.bottom
         }
@@ -200,24 +205,14 @@ mod bounds {
 }
 
 mod error {
-    /// Represents errors that can occur in the Windows platform implementation.
-    #[derive(Debug, thiserror::Error)]
-    pub enum PlatformError {
-        /// Represents [`E_ACCESSDENIED`][hresult] of [`HRESULT`](windows::core::HRESULT).
-        ///
-        /// [hresult]: <https://learn.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values>
-        #[error("Permission denied: {0}")]
-        PermissionDenied(windows::core::Error),
-        /// Represents other Win32 API errors.
-        #[error("Win32 API error: {0}")]
-        Win32Error(windows::core::Error),
-    }
+    pub use windows::core::Error as PlatformError;
 
-    impl From<windows::core::Error> for PlatformError {
-        fn from(err: windows::core::Error) -> Self {
-            match err.code() {
-                windows::Win32::Foundation::E_ACCESSDENIED => PlatformError::PermissionDenied(err),
-                _ => PlatformError::Win32Error(err),
+    impl From<windows::core::Error> for crate::Error {
+        fn from(error: windows::core::Error) -> Self {
+            if error.code() == windows::Win32::Foundation::E_ACCESSDENIED {
+                Self::PermissionDenied(error)
+            } else {
+                Self::PlatformSpecificError(error)
             }
         }
     }
