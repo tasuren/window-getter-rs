@@ -32,6 +32,10 @@ mod bounds {
     pub struct PlatformBounds(pub(crate) CGRect);
 
     impl PlatformBounds {
+        pub fn new(rect: CGRect) -> Self {
+            Self(rect)
+        }
+
         pub fn sys(&self) -> &CGRect {
             &self.0
         }
@@ -152,9 +156,23 @@ mod window_info {
         };
     }
 
+    /// The wrapper for a window's dictionary representation.
     pub struct WindowInfo(pub(super) CFRetained<CFDictionary<CFString, CFType>>);
 
     impl WindowInfo {
+        /// Creates a new `WindowInfo` from a retained dictionary.
+        ///
+        /// # Safety
+        /// You must ensure that the dictionary is a valid representation of a window's information.
+        /// See also the corresponding documentation [Required Window List Keys][required] and
+        /// [Optional Window List Keys][optional] about a valid representation.
+        ///
+        /// [required]: <https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc>
+        /// [optional]: <https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc>
+        pub unsafe fn new(dict: CFRetained<CFDictionary<CFString, CFType>>) -> Self {
+            Self(dict)
+        }
+
         pub fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
             &self.0
         }
