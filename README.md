@@ -10,10 +10,10 @@ First release todos:
   - [x] Window title
   - [x] PID of owner that has Window
 - [ ] Windows
-  - [ ] Get all windows
-  - [ ] Window bounds
-  - [ ] Window title
-  - [ ] PID of owner that has Window
+  - [x] Get all windows
+  - [x] Window bounds
+  - [x] Window title
+  - [x] PID of owner that has Window
 - [ ] Linux?
   I have no plans to make this at this time due to my inexperienced knowledge about Linux.  
   But I'd be happy to receive pull requests.
