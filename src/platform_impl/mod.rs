@@ -1,3 +1,5 @@
+//! Platform-specific implementations for window.
+
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "windows")]
