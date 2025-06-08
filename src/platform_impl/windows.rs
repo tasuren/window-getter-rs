@@ -45,6 +45,9 @@ mod window {
     /// Represents a window in the Windows platform.
     pub struct PlatformWindow(pub(crate) HWND);
 
+    unsafe impl Send for PlatformWindow {}
+    unsafe impl Sync for PlatformWindow {}
+
     impl PlatformWindow {
         /// Creates a new [`PlatformWindow`] from a raw [`HWND`](windows::Win32::Foundation::HWND).
         ///
