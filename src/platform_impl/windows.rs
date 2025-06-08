@@ -15,6 +15,7 @@ unsafe extern "system" fn enum_windows_callback(
     BOOL::from(true)
 }
 
+/// Retrieves a list of all windows on the screen.
 pub fn get_windows() -> Result<Vec<Window>, Error> {
     let mut windows = Vec::new();
 
@@ -23,7 +24,8 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
         windows::Win32::UI::WindowsAndMessaging::EnumWindows(
             Some(enum_windows_callback),
             LPARAM(&mut windows as *const Vec<Window> as _),
-        )?
+        )
+        .map_err(PlatformError::from)?
     };
 
     Ok(windows)
@@ -32,15 +34,20 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 mod window {
     use std::mem::MaybeUninit;
 
-    use windows::Win32::{Foundation::HWND, System::Threading, UI::WindowsAndMessaging};
+    use windows::Win32::{
+        Foundation::{self, HWND},
+        System::Threading,
+        UI::WindowsAndMessaging,
+    };
 
     use super::PlatformError;
     use crate::platform_impl::windows::PlatformBounds;
 
+    /// Represents a window in the Windows platform.
     pub struct PlatformWindow(pub(crate) HWND);
 
     impl PlatformWindow {
-        /// Creates a new `PlatformWindow` from a raw `HWND`.
+        /// Creates a new [`PlatformWindow`] from a raw [`HWND`](windows::Win32::Foundation::HWND).
         ///
         /// # Safety
         /// You must ensure that the `hwnd` is a valid window handle.
@@ -48,28 +55,31 @@ mod window {
             Self(hwnd)
         }
 
-        pub fn sys(&self) -> HWND {
+        /// Returns the raw handle to the window.
+        pub fn hwnd(&self) -> HWND {
             self.0
         }
 
+        /// Returns the title of the window.
         pub fn title(&self) -> Result<Option<String>, PlatformError> {
             let mut buffer = [0u16; 256];
             let length = unsafe { WindowsAndMessaging::GetWindowTextW(self.0, &mut buffer) };
 
             if length == 0 {
                 let raw = windows::core::Error::from_win32();
-                if raw.code() == windows::Win32::Foundation::S_OK {
+
+                return match raw.code() {
                     // If the length is 0 and error is success,
                     // it means the window has no title.
-                    return Ok(None);
-                }
-
-                return Err(raw);
+                    Foundation::S_OK => Ok(None),
+                    _ => Err(raw.into()),
+                };
             }
 
             Ok(Some(String::from_utf16_lossy(&buffer[..length as usize])))
         }
 
+        /// Returns the bounds of the window.
         pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
             let mut value = MaybeUninit::uninit();
 
@@ -81,18 +91,20 @@ mod window {
             Ok(PlatformBounds(rect))
         }
 
+        /// Returns the process ID of the owner of this window.
         pub fn owner_pid(&self) -> Result<i32, PlatformError> {
             let mut pid = 0;
             let thread =
                 unsafe { WindowsAndMessaging::GetWindowThreadProcessId(self.0, Some(&mut pid)) };
 
             if thread == 0 {
-                Err(windows::core::Error::from_win32())
+                Err(windows::core::Error::from_win32().into())
             } else {
                 Ok(pid as _)
             }
         }
 
+        /// Returns the handle to the process that owns this window.
         pub fn owner_process_handle(
             &self,
         ) -> Result<windows::Win32::Foundation::HANDLE, PlatformError> {
@@ -122,7 +134,7 @@ mod window {
             };
 
             if length == 0 {
-                return Err(windows::core::Error::from_win32());
+                return Err(windows::core::Error::from_win32().into());
             }
 
             Ok(String::from_utf16_lossy(&buffer[..length as usize]))
@@ -133,13 +145,16 @@ mod window {
 mod bounds {
     use windows::Win32::Foundation::RECT;
 
+    /// Represents the bounds of a window in the Windows platform.
     pub struct PlatformBounds(pub(crate) RECT);
 
     impl PlatformBounds {
+        /// Creates a new [`PlatformBounds`] from a raw [`RECT`](windows::Win32::Foundation::RECT).
         pub fn new(rect: RECT) -> Self {
             Self(rect)
         }
 
+        /// Returns the raw [`RECT`](windows::Win32::Foundation::RECT) structure.
         pub fn sys(&self) -> &RECT {
             &self.0
         }
@@ -152,10 +167,16 @@ mod bounds {
             self.0.top
         }
 
+        /// Returns the width of the bounds.
+        /// The width is calculated as `right - left`
+        /// by using [`RECT`](windows::Win32::Foundation::RECT).
         pub fn width(&self) -> i32 {
             self.0.right - self.0.left
         }
 
+        /// Returns the height of the bounds.
+        /// The width is calculated as `bottom - top`
+        /// by using [`RECT`](windows::Win32::Foundation::RECT).
         pub fn height(&self) -> i32 {
             self.0.bottom - self.0.top
         }
@@ -179,5 +200,25 @@ mod bounds {
 }
 
 mod error {
-    pub use windows::core::Error as PlatformError;
+    /// Represents errors that can occur in the Windows platform implementation.
+    #[derive(Debug, thiserror::Error)]
+    pub enum PlatformError {
+        /// Represents [`E_ACCESSDENIED`][hresult] of [`HRESULT`](windows::core::HRESULT).
+        ///
+        /// [hresult]: <https://learn.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values>
+        #[error("Permission denied: {0}")]
+        PermissionDenied(windows::core::Error),
+        /// Represents other Win32 API errors.
+        #[error("Win32 API error: {0}")]
+        Win32Error(windows::core::Error),
+    }
+
+    impl From<windows::core::Error> for PlatformError {
+        fn from(err: windows::core::Error) -> Self {
+            match err.code() {
+                windows::Win32::Foundation::E_ACCESSDENIED => PlatformError::PermissionDenied(err),
+                _ => PlatformError::Win32Error(err),
+            }
+        }
+    }
 }
