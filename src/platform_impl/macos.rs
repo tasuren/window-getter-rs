@@ -177,6 +177,9 @@ mod window_info {
     /// - [Optional Window List Keys](https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc)
     pub struct WindowInfo(pub(super) CFRetained<CFDictionary<CFString, CFType>>);
 
+    unsafe impl Send for WindowInfo {}
+    unsafe impl Sync for WindowInfo {}
+
     impl WindowInfo {
         /// Creates a new `WindowInfo` from a retained dictionary.
         ///
