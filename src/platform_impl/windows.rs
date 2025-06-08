@@ -136,6 +136,10 @@ mod bounds {
     pub struct PlatformBounds(pub(crate) RECT);
 
     impl PlatformBounds {
+        pub fn new(rect: RECT) -> Self {
+            Self(rect)
+        }
+
         pub fn sys(&self) -> &RECT {
             &self.0
         }
