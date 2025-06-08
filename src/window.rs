@@ -8,7 +8,11 @@ impl Window {
     }
 
     pub fn title(&self) -> Result<Option<String>, Error> {
-        Ok(self.0.title())
+        #[cfg(target_os = "macos")]
+        return Ok(self.0.title());
+
+        #[cfg(target_os = "windows")]
+        Ok(self.0.title()?)
     }
 
     pub fn bounds(&self) -> Result<Bounds, Error> {
@@ -16,10 +20,18 @@ impl Window {
     }
 
     pub fn owner_pid(&self) -> Result<i32, Error> {
-        Ok(self.0.owner_pid())
+        #[cfg(target_os = "macos")]
+        return Ok(self.0.owner_pid());
+
+        #[cfg(target_os = "windows")]
+        Ok(self.0.owner_pid()?)
     }
 
     pub fn owner_name(&self) -> Result<Option<String>, Error> {
-        Ok(self.0.owner_name())
+        #[cfg(target_os = "macos")]
+        return Ok(self.0.owner_name());
+
+        #[cfg(target_os = "windows")]
+        Ok(self.0.owner_name().map(Some)?)
     }
 }

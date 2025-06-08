@@ -10,19 +10,19 @@ impl Bounds {
     }
 
     pub fn x(&self) -> f64 {
-        self.0.x()
+        self.0.x().into()
     }
 
     pub fn y(&self) -> f64 {
-        self.0.y()
+        self.0.y().into()
     }
 
     pub fn width(&self) -> f64 {
-        self.0.width()
+        self.0.width().into()
     }
 
     pub fn height(&self) -> f64 {
-        self.0.height()
+        self.0.height().into()
     }
 }
 

@@ -3,9 +3,9 @@ fn main() {
     println!("Found {} windows:\n", windows.len());
 
     for window in windows {
-        println!("\n{:?}", window.title().unwrap());
+        println!("\n{:?}", window.title());
         println!("\tBounds: {:?}", window.bounds());
         println!("\tProcess ID: {}", window.owner_pid().unwrap());
-        println!("\tProcess Name: {:?}", window.owner_name().unwrap());
+        println!("\tProcess Name: {:?}", window.owner_name());
     }
 }
