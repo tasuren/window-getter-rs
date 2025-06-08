@@ -9,7 +9,7 @@ First release todos:
   - [x] Window bounds
   - [x] Window title
   - [x] PID of owner that has Window
-- [ ] Windows
+- [x] Windows
   - [x] Get all windows
   - [x] Window bounds
   - [x] Window title
