@@ -94,7 +94,7 @@ mod window {
         }
 
         /// Returns the process ID of the owner of this window.
-        pub fn owner_pid(&self) -> Result<i32, PlatformError> {
+        pub fn owner_pid(&self) -> Result<u32, PlatformError> {
             let mut pid = 0;
             let thread =
                 unsafe { WindowsAndMessaging::GetWindowThreadProcessId(self.0, Some(&mut pid)) };
@@ -102,7 +102,7 @@ mod window {
             if thread == 0 {
                 Err(windows::core::Error::from_win32())
             } else {
-                Ok(pid as _)
+                Ok(pid)
             }
         }
 
@@ -115,7 +115,7 @@ mod window {
                 Threading::OpenProcess(
                     Threading::PROCESS_QUERY_INFORMATION | Threading::PROCESS_VM_READ,
                     false,
-                    pid as _,
+                    pid,
                 )?
             };
 
