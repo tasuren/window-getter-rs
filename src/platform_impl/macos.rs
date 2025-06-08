@@ -38,8 +38,8 @@ mod bounds {
             Self(rect)
         }
 
-        pub const fn cg_rect(&self) -> &CGRect {
-            &self.0
+        pub const fn cg_rect(&self) -> CGRect {
+            self.0
         }
 
         pub const fn x(&self) -> f64 {
