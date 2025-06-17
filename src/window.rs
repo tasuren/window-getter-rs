@@ -1,4 +1,4 @@
-use crate::{Bounds, Error, platform_impl::PlatformWindow};
+use crate::{Bounds, Error, WindowId, platform_impl::PlatformWindow};
 
 /// A wrapper around a platform-specific window.
 /// This struct provides a cross-platform interface to interact with window properties.
@@ -8,6 +8,11 @@ impl Window {
     /// Retrieves the underlying platform-specific window.
     pub fn inner(&self) -> &PlatformWindow {
         &self.0
+    }
+
+    /// Returns the unique identifier of the window.
+    pub fn id(&self) -> WindowId {
+        WindowId(self.0.id())
     }
 
     /// Returns the title of the window.

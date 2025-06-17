@@ -6,6 +6,10 @@ pub mod macos;
 pub mod windows;
 
 #[cfg(target_os = "macos")]
-pub use macos::{PlatformBounds, PlatformError, PlatformWindow, get_windows};
+pub use macos::{
+    PlatformBounds, PlatformError, PlatformWindow, PlatformWindowId, get_window, get_windows,
+};
 #[cfg(target_os = "windows")]
-pub use windows::{PlatformBounds, PlatformError, PlatformWindow, get_windows};
+pub use windows::{
+    PlatformBounds, PlatformError, PlatformWindow, PlatformWindowId, get_window, get_windows,
+};

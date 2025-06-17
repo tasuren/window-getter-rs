@@ -6,7 +6,29 @@ use crate::{Error, Window};
 pub use bounds::PlatformBounds;
 pub use error::PlatformError;
 pub use window::PlatformWindow;
+pub use window_id::PlatformWindowId;
 pub use window_info::WindowInfo;
+
+/// Retrieves a window by its unique identifier.
+pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
+    let list: CFRetained<CFArray<CFDictionary<CFString, CFType>>> = unsafe {
+        let list = CGWindowListCopyWindowInfo(CGWindowListOption::all(), id);
+        let Some(list) = list else {
+            return Err(Error::NoWindowEnvironment);
+        };
+
+        CFRetained::cast_unchecked(list)
+    };
+
+    for dict in list.iter() {
+        let window = PlatformWindow(WindowInfo(dict));
+        if window.id() == id {
+            return Ok(Some(Window(window)));
+        }
+    }
+
+    Ok(None)
+}
 
 /// Retrieves a list of all open windows on the system.
 pub fn get_windows() -> Result<Vec<Window>, Error> {
@@ -25,39 +47,6 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
         .collect();
 
     Ok(windows)
-}
-
-mod bounds {
-    use objc2_core_foundation::CGRect;
-
-    /// A wrapper around a `CGRect` that represents the bounds of a window.
-    pub struct PlatformBounds(pub(crate) CGRect);
-
-    impl PlatformBounds {
-        pub const fn new(rect: CGRect) -> Self {
-            Self(rect)
-        }
-
-        pub const fn cg_rect(&self) -> CGRect {
-            self.0
-        }
-
-        pub const fn x(&self) -> f64 {
-            self.0.origin.x
-        }
-
-        pub const fn y(&self) -> f64 {
-            self.0.origin.y
-        }
-
-        pub const fn width(&self) -> f64 {
-            self.0.size.width
-        }
-
-        pub const fn height(&self) -> f64 {
-            self.0.size.height
-        }
-    }
 }
 
 mod window {
@@ -84,8 +73,18 @@ mod window {
             &self.0
         }
 
+        /// Returns the window unique identifier.
+        /// This is the window number.
+        pub fn id(&self) -> u32 {
+            self.0
+                .number()
+                .as_i64()
+                .expect("invalid window number value") as _
+        }
+
         /// Returns the window's title.
         pub fn title(&self) -> Option<String> {
+            self.id();
             self.0.name().map(|name| name.to_string())
         }
 
@@ -117,6 +116,39 @@ mod window {
         /// Returns the name of the process that owns the window.
         pub fn owner_name(&self) -> Option<String> {
             self.0.owner_name().map(|name| name.to_string())
+        }
+    }
+}
+
+mod bounds {
+    use objc2_core_foundation::CGRect;
+
+    /// A wrapper around a `CGRect` that represents the bounds of a window.
+    pub struct PlatformBounds(pub(crate) CGRect);
+
+    impl PlatformBounds {
+        pub const fn new(rect: CGRect) -> Self {
+            Self(rect)
+        }
+
+        pub const fn cg_rect(&self) -> CGRect {
+            self.0
+        }
+
+        pub const fn x(&self) -> f64 {
+            self.0.origin.x
+        }
+
+        pub const fn y(&self) -> f64 {
+            self.0.origin.y
+        }
+
+        pub const fn width(&self) -> f64 {
+            self.0.size.width
+        }
+
+        pub const fn height(&self) -> f64 {
+            self.0.size.height
         }
     }
 }
@@ -219,6 +251,20 @@ mod window_info {
                 kCGWindowBackingLocationVideoMemory
             )
         );
+    }
+}
+
+mod window_id {
+    use objc2_core_graphics::CGWindowID;
+
+    use crate::window_id::WindowId;
+
+    pub type PlatformWindowId = CGWindowID;
+
+    impl From<WindowId> for PlatformWindowId {
+        fn from(value: WindowId) -> Self {
+            *value.inner()
+        }
     }
 }
 
