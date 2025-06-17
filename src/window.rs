@@ -12,7 +12,14 @@ impl Window {
 
     /// Returns the unique identifier of the window.
     pub fn id(&self) -> WindowId {
-        WindowId(self.0.id())
+        #[cfg(target_os = "macos")]
+        {
+            WindowId(self.0.id())
+        }
+        #[cfg(target_os = "windows")]
+        {
+            WindowId(self.0.hwnd())
+        }
     }
 
     /// Returns the title of the window.

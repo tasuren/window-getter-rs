@@ -6,7 +6,7 @@ use crate::platform_impl::PlatformWindowId;
 /// # Platform-specific
 /// - **Windows**: The ID is a value of [`HWND`](windows::Win32::Foundation::HWND).
 /// - **macOS**: The ID is a unique within the current user session. It is called a window number.
-#[derive(Clone, Debug, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub struct WindowId(pub(crate) PlatformWindowId);
 
 unsafe impl Send for WindowId {}
@@ -32,6 +32,10 @@ impl WindowId {
         {
             self.0
         }
+        #[cfg(target_os = "windows")]
+        {
+            self.0.0 as _
+        }
     }
 }
 
@@ -41,5 +45,15 @@ impl From<u32> for WindowId {
         {
             Self(id)
         }
+        #[cfg(target_os = "windows")]
+        {
+            Self(PlatformWindowId(id as _))
+        }
+    }
+}
+
+impl std::hash::Hash for WindowId {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.as_u32().hash(state);
     }
 }

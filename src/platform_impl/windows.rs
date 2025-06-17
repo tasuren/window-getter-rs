@@ -1,9 +1,25 @@
+use windows::{
+    Win32::{Foundation::LPARAM, UI::WindowsAndMessaging::IsWindow},
+    core::BOOL,
+};
+
 pub use bounds::PlatformBounds;
 pub use error::PlatformError;
 pub use window::PlatformWindow;
-use windows::{Win32::Foundation::LPARAM, core::BOOL};
+pub use window_id::PlatformWindowId;
 
 use crate::{Error, Window};
+
+/// Retrieves a window by its platform-specific identifier ([`HWND`](windows::Win32::Foundation::HWND)).
+pub fn get_window(id: PlatformWindowId) -> Option<Window> {
+    let hwnd = id;
+
+    if hwnd.is_invalid() || !unsafe { IsWindow(Some(hwnd)) }.as_bool() {
+        None
+    } else {
+        Some(Window(unsafe { PlatformWindow::new(hwnd) }))
+    }
+}
 
 unsafe extern "system" fn enum_windows_callback(
     hwnd: windows::Win32::Foundation::HWND,
@@ -218,6 +234,18 @@ mod error {
             } else {
                 Self::PlatformSpecificError(error)
             }
+        }
+    }
+}
+
+mod window_id {
+    pub use windows::Win32::Foundation::HWND as PlatformWindowId;
+
+    use crate::WindowId;
+
+    impl From<WindowId> for PlatformWindowId {
+        fn from(id: WindowId) -> Self {
+            id.0
         }
     }
 }
