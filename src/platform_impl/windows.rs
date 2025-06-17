@@ -158,6 +158,11 @@ mod window {
 
             Ok(String::from_utf16_lossy(&buffer[..length as usize]))
         }
+
+        /// Checks if the window is foreground.
+        pub fn is_foreground(&self) -> bool {
+            self.0 == unsafe { WindowsAndMessaging::GetForegroundWindow() }
+        }
     }
 }
 
