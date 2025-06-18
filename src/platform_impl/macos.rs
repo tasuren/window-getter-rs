@@ -59,17 +59,17 @@ mod window {
 
     use super::WindowInfo;
 
-    /// A wrapper around a window's information [WindowInfo](super::WindowInfo).
+    /// A wrapper around a window's information [WindowInfo].
     pub struct PlatformWindow(pub(crate) WindowInfo);
 
     impl PlatformWindow {
-        /// Creates a new [`PlatformWindow`] from a [`WindowInfo`](super::WindowInfo).
-        pub const fn new(window_info: WindowInfo) -> Self {
+        /// Creates a new [`PlatformWindow`] from a [`WindowInfo`].
+        pub fn new(window_info: WindowInfo) -> Self {
             Self(window_info)
         }
 
-        /// Returns the underlying [`WindowInfo`](super::WindowInfo) object.
-        pub const fn window_info(&self) -> &WindowInfo {
+        /// Returns the underlying [`WindowInfo`] object.
+        pub fn window_info(&self) -> &WindowInfo {
             &self.0
         }
 
@@ -88,7 +88,7 @@ mod window {
             self.0.name().map(|name| name.to_string())
         }
 
-        /// Returns the bounds of the window as a [`PlatformBounds`](super::PlatformError).
+        /// Returns the bounds of the window as a [`PlatformBounds`].
         pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
             let bounds = self.0.bounds();
             let mut rect = MaybeUninit::<CGRect>::uninit();
@@ -123,7 +123,7 @@ mod window {
 mod bounds {
     use objc2_core_foundation::CGRect;
 
-    /// A wrapper around a `CGRect` that represents the bounds of a window.
+    /// A wrapper around a [`CGRect`] that represents the bounds of a window.
     pub struct PlatformBounds(pub(crate) CGRect);
 
     impl PlatformBounds {
