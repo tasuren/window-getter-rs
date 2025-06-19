@@ -12,6 +12,9 @@ pub use error::Error;
 pub use window::Window;
 
 /// Retrieves a window by its unique identifier.
+///
+/// # Platform-specific
+/// - **windows:** It will always return [`Ok`].
 pub fn get_window(id: WindowId) -> Result<Option<Window>, Error> {
     #[cfg(target_os = "macos")]
     {
