@@ -32,4 +32,4 @@ First release todos:
   But I'd be happy to receive pull requests.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](./LICENSE).
