@@ -59,6 +59,7 @@ mod window {
     use crate::platform_impl::windows::PlatformBounds;
 
     /// Represents a window in the Windows platform.
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct PlatformWindow(pub(crate) HWND);
 
     unsafe impl Send for PlatformWindow {}
