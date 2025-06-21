@@ -21,6 +21,11 @@ impl Window {
         &self.0
     }
 
+    /// Consumes the `Window` and returns the underlying platform-specific window.
+    pub fn into_inner(self) -> PlatformWindow {
+        self.0
+    }
+
     /// Returns the unique identifier of the window.
     pub fn id(&self) -> WindowId {
         #[cfg(target_os = "macos")]
