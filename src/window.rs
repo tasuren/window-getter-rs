@@ -2,6 +2,7 @@ use crate::{Bounds, Error, WindowId, platform_impl::PlatformWindow};
 
 /// A wrapper around a platform-specific window.
 /// This struct provides a cross-platform interface to interact with window properties.
+#[derive(Clone, Debug)]
 pub struct Window(pub(crate) PlatformWindow);
 
 impl Window {
