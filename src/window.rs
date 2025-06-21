@@ -5,6 +5,16 @@ use crate::{Bounds, Error, WindowId, platform_impl::PlatformWindow};
 pub struct Window(pub(crate) PlatformWindow);
 
 impl Window {
+    /// Creates a new [`Window`] instance from a platform-specific window.
+    ///
+    /// # Notes
+    /// You can get a `Window` instance by using the [`get_window`](crate::get_window) function
+    /// or [`get_windows`](crate::get_windows) function so you don't need to create it manually
+    /// in most use cases.
+    pub fn new(inner: PlatformWindow) -> Self {
+        Self(inner)
+    }
+
     /// Retrieves the underlying platform-specific window.
     pub fn inner(&self) -> &PlatformWindow {
         &self.0
