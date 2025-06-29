@@ -60,6 +60,7 @@ mod window {
     use super::WindowInfo;
 
     /// A wrapper around a window's information [WindowInfo].
+    #[derive(Clone, Debug)]
     pub struct PlatformWindow(pub(crate) WindowInfo);
 
     impl PlatformWindow {
@@ -207,6 +208,7 @@ mod window_info {
     /// This struct represents a window's information and supports following values:
     /// - [Required Window List Keys](https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc)
     /// - [Optional Window List Keys](https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc)
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct WindowInfo(pub(super) CFRetained<CFDictionary<CFString, CFType>>);
 
     unsafe impl Send for WindowInfo {}
