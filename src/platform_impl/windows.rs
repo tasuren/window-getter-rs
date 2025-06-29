@@ -50,7 +50,8 @@ mod window {
     use std::mem::MaybeUninit;
 
     use windows::Win32::{
-        Foundation::{self, HWND},
+        Foundation::{self, HWND, RECT},
+        Graphics::Dwm::{DWMWA_EXTENDED_FRAME_BOUNDS, DwmGetWindowAttribute},
         System::Threading,
         UI::WindowsAndMessaging,
     };
@@ -100,10 +101,15 @@ mod window {
 
         /// Returns the bounds of the window.
         pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
-            let mut value = MaybeUninit::uninit();
+            let mut value = MaybeUninit::<RECT>::uninit();
 
             let rect = unsafe {
-                WindowsAndMessaging::GetWindowRect(self.0, value.as_mut_ptr())?;
+                DwmGetWindowAttribute(
+                    self.0,
+                    DWMWA_EXTENDED_FRAME_BOUNDS,
+                    value.as_mut_ptr() as _,
+                    size_of::<RECT>() as _,
+                )?;
                 value.assume_init()
             };
 
