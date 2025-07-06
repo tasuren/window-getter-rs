@@ -53,7 +53,7 @@ mod window {
         Foundation::{self, HWND, RECT},
         Graphics::Dwm::{DWMWA_EXTENDED_FRAME_BOUNDS, DwmGetWindowAttribute},
         System::Threading,
-        UI::WindowsAndMessaging,
+        UI::WindowsAndMessaging::{self, GetWindowRect},
     };
 
     use super::PlatformError;
@@ -99,21 +99,38 @@ mod window {
             Ok(Some(String::from_utf16_lossy(&buffer[..length as usize])))
         }
 
-        /// Returns the bounds of the window.
-        pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
-            let mut value = MaybeUninit::<RECT>::uninit();
+        /// Returns the raw rectangle of the window by [`GetWindowRect`].
+        /// 
+        /// It includes the invisible resize borders.
+        /// So it may not be the same as the window rectangle that is actually seen.
+        pub fn rect(&self) -> Result<RECT, PlatformError> {
+            Ok(unsafe {
+                let mut rect = std::mem::zeroed();
+                GetWindowRect(self.0, &mut rect)?;
+                rect
+            })
+        }
 
-            let rect = unsafe {
+        /// Returns the extended frame bounds of the window
+        /// by [`DwmGetWindowAttribute`] with [`DWMWA_EXTENDED_FRAME_BOUNDS`].
+        pub fn extended_frame_bounds(&self) -> Result<RECT, PlatformError> {
+            Ok(unsafe {
+                let mut rect: RECT = std::mem::zeroed();
                 DwmGetWindowAttribute(
                     self.0,
                     DWMWA_EXTENDED_FRAME_BOUNDS,
-                    value.as_mut_ptr() as _,
-                    size_of::<RECT>() as _,
+                    &mut rect as *mut RECT as _,
+                    std::mem::size_of::<RECT>() as _,
                 )?;
-                value.assume_init()
-            };
+                rect
+            })
+        }
 
-            Ok(PlatformBounds(rect))
+        /// Returns the bounds of the window.
+        /// This will return [`extended_frame_bounds`](Self::extended_frame_bounds)
+        /// value wrapped in [`PlatformBounds`].
+        pub fn visible_rect(&self) -> Result<PlatformBounds, PlatformError> {
+            self.extended_frame_bounds().map(PlatformBounds)
         }
 
         /// Returns the process ID of the owner of this window.
