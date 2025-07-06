@@ -47,8 +47,6 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 }
 
 mod window {
-    use std::mem::MaybeUninit;
-
     use windows::Win32::{
         Foundation::{self, HWND, RECT},
         Graphics::Dwm::{DWMWA_EXTENDED_FRAME_BOUNDS, DwmGetWindowAttribute},
