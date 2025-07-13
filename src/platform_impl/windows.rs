@@ -198,6 +198,7 @@ mod bounds {
     use windows::Win32::Foundation::RECT;
 
     /// Represents the bounds of a window in the Windows platform.
+    #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct PlatformBounds(pub(crate) RECT);
 
     impl PlatformBounds {
