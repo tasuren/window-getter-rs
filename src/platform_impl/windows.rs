@@ -98,7 +98,7 @@ mod window {
         }
 
         /// Returns the raw rectangle of the window by [`GetWindowRect`].
-        /// 
+        ///
         /// It includes the invisible resize borders.
         /// So it may not be the same as the window rectangle that is actually seen.
         pub fn rect(&self) -> Result<RECT, PlatformError> {
@@ -107,6 +107,12 @@ mod window {
                 GetWindowRect(self.0, &mut rect)?;
                 rect
             })
+        }
+
+        /// Returns the bounds of the window.
+        /// This will return [`rect`](Self::rect) value wrapped in [`PlatformBounds`].
+        pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
+            self.rect().map(PlatformBounds)
         }
 
         /// Returns the extended frame bounds of the window
@@ -127,7 +133,7 @@ mod window {
         /// Returns the bounds of the window.
         /// This will return [`extended_frame_bounds`](Self::extended_frame_bounds)
         /// value wrapped in [`PlatformBounds`].
-        pub fn visible_rect(&self) -> Result<PlatformBounds, PlatformError> {
+        pub fn visible_bounds(&self) -> Result<PlatformBounds, PlatformError> {
             self.extended_frame_bounds().map(PlatformBounds)
         }
 

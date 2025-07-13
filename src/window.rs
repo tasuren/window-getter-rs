@@ -65,7 +65,7 @@ impl Window {
         #[cfg(target_os = "windows")]
         {
             self.0
-                .visible_rect()
+                .visible_bounds()
                 .map_err(Error::from)
                 .map(Bounds)
         }
