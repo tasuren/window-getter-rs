@@ -23,3 +23,15 @@ impl From<PlatformBounds> for Bounds {
         }
     }
 }
+
+#[cfg(target_os = "windows")]
+impl From<PlatformBounds> for Bounds {
+    fn from(value: PlatformBounds) -> Self {
+        Self {
+            x: value.left as _,
+            y: value.top as _,
+            width: (value.right - value.left) as _,
+            height: (value.bottom - value.top) as _,
+        }
+    }
+}

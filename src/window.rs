@@ -58,7 +58,14 @@ impl Window {
 
     /// Returns the bounds of the window.
     pub fn bounds(&self) -> Result<Bounds, Error> {
-        Ok(self.0.bounds()?.into())
+        #[cfg(target_os = "macos")]
+        {
+            Ok(self.0.bounds()?.into())
+        }
+        #[cfg(target_os = "windows")]
+        {
+            Ok(self.0.bounds()?.into())
+        }
     }
 
     /// Returns the process ID of the window's owner.

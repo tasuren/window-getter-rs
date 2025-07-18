@@ -3,12 +3,12 @@ use windows::{
     core::BOOL,
 };
 
-pub use bounds::PlatformBounds;
-pub use error::PlatformError;
-pub use window::PlatformWindow;
-pub use window_id::PlatformWindowId;
+use crate::{Error, Window, platform_impl::windows::window::WindowsWindow};
 
-use crate::{Error, Window};
+pub type PlatformBounds = windows::Win32::Foundation::RECT;
+pub type PlatformError = error::WindowsError;
+pub type PlatformWindow = window::WindowsWindow;
+pub type PlatformWindowId = window_id::WindowsWindowId;
 
 /// Retrieves a window by its platform-specific identifier ([`HWND`](windows::Win32::Foundation::HWND)).
 pub fn get_window(id: PlatformWindowId) -> Option<Window> {
@@ -17,7 +17,7 @@ pub fn get_window(id: PlatformWindowId) -> Option<Window> {
     if hwnd.is_invalid() || !unsafe { IsWindow(Some(hwnd)) }.as_bool() {
         None
     } else {
-        Some(Window(unsafe { PlatformWindow::new(hwnd) }))
+        Some(Window(unsafe { PlatformWindow::new_unchecked(hwnd) }))
     }
 }
 
@@ -26,7 +26,7 @@ unsafe extern "system" fn enum_windows_callback(
     lparam: LPARAM,
 ) -> BOOL {
     let windows = unsafe { &mut *(lparam.0 as *mut Vec<Window>) };
-    windows.push(Window(PlatformWindow(hwnd)));
+    windows.push(Window(unsafe { WindowsWindow::new_unchecked(hwnd) }));
 
     BOOL::from(true)
 }
@@ -50,27 +50,26 @@ mod window {
     use std::mem::MaybeUninit;
 
     use windows::Win32::{
-        Foundation::{self, HWND},
+        Foundation::{self, HWND, RECT},
         System::Threading,
         UI::WindowsAndMessaging,
     };
 
     use super::PlatformError;
-    use crate::platform_impl::windows::PlatformBounds;
 
     /// Represents a window in the Windows platform.
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    pub struct PlatformWindow(pub(crate) HWND);
+    pub struct WindowsWindow(pub(crate) HWND);
 
-    unsafe impl Send for PlatformWindow {}
-    unsafe impl Sync for PlatformWindow {}
+    unsafe impl Send for WindowsWindow {}
+    unsafe impl Sync for WindowsWindow {}
 
-    impl PlatformWindow {
-        /// Creates a new [`PlatformWindow`] from a raw [`HWND`](windows::Win32::Foundation::HWND).
+    impl WindowsWindow {
+        /// Creates a new `PlatformWindow` from a raw [`HWND`].
         ///
         /// # Safety
         /// You must ensure that the `hwnd` is a valid window handle.
-        pub unsafe fn new(hwnd: HWND) -> Self {
+        pub unsafe fn new_unchecked(hwnd: HWND) -> Self {
             Self(hwnd)
         }
 
@@ -99,7 +98,7 @@ mod window {
         }
 
         /// Returns the bounds of the window.
-        pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
+        pub fn bounds(&self) -> Result<RECT, PlatformError> {
             let mut value = MaybeUninit::uninit();
 
             let rect = unsafe {
@@ -107,7 +106,7 @@ mod window {
                 value.assume_init()
             };
 
-            Ok(PlatformBounds(rect))
+            Ok(rect)
         }
 
         /// Returns the process ID of the owner of this window.
@@ -167,74 +166,11 @@ mod window {
     }
 }
 
-mod bounds {
-    use windows::Win32::Foundation::RECT;
+pub mod error {
+    pub type WindowsError = windows::core::Error;
 
-    /// Represents the bounds of a window in the Windows platform.
-    pub struct PlatformBounds(pub(crate) RECT);
-
-    impl PlatformBounds {
-        /// Creates a new [`PlatformBounds`] from a raw [`RECT`](windows::Win32::Foundation::RECT).
-        pub fn new(rect: RECT) -> Self {
-            Self(rect)
-        }
-
-        /// Returns the raw [`RECT`](windows::Win32::Foundation::RECT) structure.
-        pub fn sys(&self) -> &RECT {
-            &self.0
-        }
-
-        /// Returns the x-coordinate of the bounds.
-        pub fn x(&self) -> i32 {
-            self.0.left
-        }
-
-        /// Returns the y-coordinate of the bounds.
-        pub fn y(&self) -> i32 {
-            self.0.top
-        }
-
-        /// Returns the width of the bounds.
-        /// The width is calculated as `right - left`
-        /// by using [`RECT`](windows::Win32::Foundation::RECT).
-        pub fn width(&self) -> i32 {
-            self.0.right - self.0.left
-        }
-
-        /// Returns the height of the bounds.
-        /// The width is calculated as `bottom - top`
-        /// by using [`RECT`](windows::Win32::Foundation::RECT).
-        pub fn height(&self) -> i32 {
-            self.0.bottom - self.0.top
-        }
-
-        /// Returns the left coordinate of the bounds.
-        pub const fn left(&self) -> i32 {
-            self.0.left
-        }
-
-        /// Returns the top coordinate of the bounds.
-        pub const fn top(&self) -> i32 {
-            self.0.top
-        }
-
-        /// Returns the right coordinate of the bounds.
-        pub const fn right(&self) -> i32 {
-            self.0.right
-        }
-
-        /// Returns the bottom coordinate of the bounds.
-        pub const fn bottom(&self) -> i32 {
-            self.0.bottom
-        }
-    }
-}
-
-mod error {
-    pub use windows::core::Error as PlatformError;
-
-    impl From<windows::core::Error> for crate::Error {
-        fn from(error: windows::core::Error) -> Self {
+    impl From<WindowsError> for crate::Error {
+        fn from(error: WindowsError) -> Self {
             if error.code() == windows::Win32::Foundation::E_ACCESSDENIED {
                 Self::PermissionDenied(error)
             } else {
@@ -245,11 +181,11 @@ mod error {
 }
 
 mod window_id {
-    pub use windows::Win32::Foundation::HWND as PlatformWindowId;
+    pub type WindowsWindowId = windows::Win32::Foundation::HWND;
 
     use crate::WindowId;
 
-    impl From<WindowId> for PlatformWindowId {
+    impl From<WindowId> for WindowsWindowId {
         fn from(id: WindowId) -> Self {
             id.0
         }
