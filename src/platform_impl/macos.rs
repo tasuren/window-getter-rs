@@ -3,11 +3,12 @@ use objc2_core_graphics::{CGWindowListCopyWindowInfo, CGWindowListOption, kCGNul
 
 use crate::{Error, Window};
 
-pub use bounds::PlatformBounds;
-pub use error::PlatformError;
-pub use window::PlatformWindow;
-pub use window_id::PlatformWindowId;
 pub use window_info::WindowInfo;
+
+pub type PlatformBounds = objc2_core_foundation::CGRect;
+pub type PlatformError = error::MacOSError;
+pub type PlatformWindow = window::MacOSWindow;
+pub type PlatformWindowId = window_id::MacOSWindowId;
 
 /// Retrieves a window by its unique identifier.
 pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
@@ -21,7 +22,7 @@ pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
     };
 
     for dict in list.iter() {
-        let window = PlatformWindow(WindowInfo(dict));
+        let window = PlatformWindow::new(unsafe { WindowInfo::new_unchecked(dict) });
         if window.id() == id {
             return Ok(Some(Window(window)));
         }
@@ -43,7 +44,11 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 
     let windows = list
         .iter()
-        .map(|dict| Window(PlatformWindow(WindowInfo(dict))))
+        .map(|dict| {
+            Window(PlatformWindow::new(unsafe {
+                WindowInfo::new_unchecked(dict)
+            }))
+        })
         .collect();
 
     Ok(windows)
@@ -55,16 +60,16 @@ mod window {
     use objc2_core_foundation::CGRect;
     use objc2_core_graphics::CGRectMakeWithDictionaryRepresentation;
 
-    use crate::platform_impl::{PlatformBounds, macos::PlatformError};
+    use crate::platform_impl::macos::PlatformError;
 
     use super::WindowInfo;
 
     /// A wrapper around a window's information [WindowInfo].
     #[derive(Clone, Debug)]
-    pub struct PlatformWindow(pub(crate) WindowInfo);
+    pub struct MacOSWindow(pub(crate) WindowInfo);
 
-    impl PlatformWindow {
-        /// Creates a new [`PlatformWindow`] from a [`WindowInfo`].
+    impl MacOSWindow {
+        /// Creates a new [`MacOSWindow`] from a [`WindowInfo`].
         pub fn new(window_info: WindowInfo) -> Self {
             Self(window_info)
         }
@@ -90,7 +95,7 @@ mod window {
         }
 
         /// Returns the bounds of the window as a [`PlatformBounds`].
-        pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
+        pub fn bounds(&self) -> Result<CGRect, PlatformError> {
             let bounds = self.0.bounds();
             let mut rect = MaybeUninit::<CGRect>::uninit();
 
@@ -99,7 +104,7 @@ mod window {
                     CGRectMakeWithDictionaryRepresentation(Some(&bounds), rect.as_mut_ptr());
 
                 if result {
-                    Ok(PlatformBounds(rect.assume_init()))
+                    Ok(rect.assume_init())
                 } else {
                     Err(PlatformError::InvalidWindowBounds)
                 }
@@ -117,39 +122,6 @@ mod window {
         /// Returns the name of the process that owns the window.
         pub fn owner_name(&self) -> Option<String> {
             self.0.owner_name().map(|name| name.to_string())
-        }
-    }
-}
-
-mod bounds {
-    use objc2_core_foundation::CGRect;
-
-    /// A wrapper around a [`CGRect`] that represents the bounds of a window.
-    pub struct PlatformBounds(pub(crate) CGRect);
-
-    impl PlatformBounds {
-        pub const fn new(rect: CGRect) -> Self {
-            Self(rect)
-        }
-
-        pub const fn cg_rect(&self) -> CGRect {
-            self.0
-        }
-
-        pub const fn x(&self) -> f64 {
-            self.0.origin.x
-        }
-
-        pub const fn y(&self) -> f64 {
-            self.0.origin.y
-        }
-
-        pub const fn width(&self) -> f64 {
-            self.0.size.width
-        }
-
-        pub const fn height(&self) -> f64 {
-            self.0.size.height
         }
     }
 }
@@ -209,7 +181,7 @@ mod window_info {
     /// - [Required Window List Keys](https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc)
     /// - [Optional Window List Keys](https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc)
     #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct WindowInfo(pub(super) CFRetained<CFDictionary<CFString, CFType>>);
+    pub struct WindowInfo(CFRetained<CFDictionary<CFString, CFType>>);
 
     unsafe impl Send for WindowInfo {}
     unsafe impl Sync for WindowInfo {}
@@ -224,11 +196,11 @@ mod window_info {
         ///
         /// [required]: <https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc>
         /// [optional]: <https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc>
-        pub unsafe fn new(dict: CFRetained<CFDictionary<CFString, CFType>>) -> Self {
+        pub unsafe fn new_unchecked(dict: CFRetained<CFDictionary<CFString, CFType>>) -> Self {
             Self(dict)
         }
 
-        pub const fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
+        pub fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
             &self.0
         }
 
@@ -261,9 +233,9 @@ mod window_id {
 
     use crate::window_id::WindowId;
 
-    pub type PlatformWindowId = CGWindowID;
+    pub type MacOSWindowId = CGWindowID;
 
-    impl From<WindowId> for PlatformWindowId {
+    impl From<WindowId> for MacOSWindowId {
         fn from(value: WindowId) -> Self {
             *value.inner()
         }
@@ -273,14 +245,14 @@ mod window_id {
 mod error {
     /// Low-level errors that can occur when interacting with the platform-specific API.
     #[derive(Debug, thiserror::Error)]
-    pub enum PlatformError {
+    pub enum MacOSError {
         /// Represents a situation when the window bounds cannot be used.
         #[error("Failed to make window `CGRect` from dictionary representation.")]
         InvalidWindowBounds,
     }
 
-    impl From<PlatformError> for crate::Error {
-        fn from(error: PlatformError) -> Self {
+    impl From<MacOSError> for crate::Error {
+        fn from(error: MacOSError) -> Self {
             Self::PlatformSpecificError(error)
         }
     }
