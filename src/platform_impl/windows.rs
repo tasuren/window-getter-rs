@@ -8,7 +8,7 @@ use crate::{Error, Window, platform_impl::windows::window::WindowsWindow};
 pub type PlatformBounds = windows::Win32::Foundation::RECT;
 pub type PlatformError = error::WindowsError;
 pub type PlatformWindow = window::WindowsWindow;
-pub type PlatformWindowId = window_id::WindowsWindowId;
+pub type PlatformWindowId = windows::Win32::Foundation::HWND;
 
 /// Retrieves a window by its platform-specific identifier ([`HWND`](windows::Win32::Foundation::HWND)).
 pub fn get_window(id: PlatformWindowId) -> Option<Window> {
@@ -17,7 +17,7 @@ pub fn get_window(id: PlatformWindowId) -> Option<Window> {
     if hwnd.is_invalid() || !unsafe { IsWindow(Some(hwnd)) }.as_bool() {
         None
     } else {
-        Some(Window(unsafe { PlatformWindow::new_unchecked(hwnd) }))
+        Some(Window(PlatformWindow::new(hwnd)))
     }
 }
 
@@ -26,7 +26,7 @@ unsafe extern "system" fn enum_windows_callback(
     lparam: LPARAM,
 ) -> BOOL {
     let windows = unsafe { &mut *(lparam.0 as *mut Vec<Window>) };
-    windows.push(Window(unsafe { WindowsWindow::new_unchecked(hwnd) }));
+    windows.push(Window(WindowsWindow::new(hwnd)));
 
     BOOL::from(true)
 }
@@ -49,13 +49,12 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 mod window {
     use windows::Win32::{
         Foundation::{self, HWND, RECT},
-<<<<<<< HEAD
-=======
         Graphics::Dwm::{DWMWA_EXTENDED_FRAME_BOUNDS, DwmGetWindowAttribute},
->>>>>>> c7dce25d4f154c15fdefadeab2a2d2df43c2428a
         System::Threading,
         UI::WindowsAndMessaging::{self, GetWindowRect},
     };
+
+    use crate::Bounds;
 
     use super::PlatformError;
 
@@ -69,9 +68,11 @@ mod window {
     impl WindowsWindow {
         /// Creates a new `PlatformWindow` from a raw [`HWND`].
         ///
-        /// # Safety
-        /// You must ensure that the `hwnd` is a valid window handle.
-        pub unsafe fn new_unchecked(hwnd: HWND) -> Self {
+        /// # Warning
+        /// You must ensure that the `hwnd` is a valid window handle. If you pass an invalid handle,
+        /// it may lead to errors on methods.
+        /// You can use [`get_window`][super::get_window] to safely retrieve a `PlatformWindow`.
+        pub fn new(hwnd: HWND) -> Self {
             Self(hwnd)
         }
 
@@ -111,16 +112,10 @@ mod window {
             })
         }
 
-        /// Returns the bounds of the window.
-<<<<<<< HEAD
-        pub fn bounds(&self) -> Result<RECT, PlatformError> {
-            let mut value = MaybeUninit::uninit();
-=======
         /// This will return [`rect`](Self::rect) value wrapped in [`PlatformBounds`].
-        pub fn bounds(&self) -> Result<PlatformBounds, PlatformError> {
-            self.rect().map(PlatformBounds)
+        pub fn bounds(&self) -> Result<Bounds, PlatformError> {
+            Ok(self.rect()?.into())
         }
->>>>>>> c7dce25d4f154c15fdefadeab2a2d2df43c2428a
 
         /// Returns the extended frame bounds of the window
         /// by [`DwmGetWindowAttribute`] with [`DWMWA_EXTENDED_FRAME_BOUNDS`].
@@ -137,15 +132,11 @@ mod window {
             })
         }
 
-<<<<<<< HEAD
-            Ok(rect)
-=======
         /// Returns the bounds of the window.
         /// This will return [`extended_frame_bounds`](Self::extended_frame_bounds)
         /// value wrapped in [`PlatformBounds`].
-        pub fn visible_bounds(&self) -> Result<PlatformBounds, PlatformError> {
-            self.extended_frame_bounds().map(PlatformBounds)
->>>>>>> c7dce25d4f154c15fdefadeab2a2d2df43c2428a
+        pub fn visible_bounds(&self) -> Result<Bounds, PlatformError> {
+            Ok(self.extended_frame_bounds()?.into())
         }
 
         /// Returns the process ID of the owner of this window.
@@ -208,94 +199,13 @@ mod window {
 pub mod error {
     pub type WindowsError = windows::core::Error;
 
-<<<<<<< HEAD
     impl From<WindowsError> for crate::Error {
         fn from(error: WindowsError) -> Self {
-=======
-    /// Represents the bounds of a window in the Windows platform.
-    #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct PlatformBounds(pub(crate) RECT);
-
-    impl PlatformBounds {
-        /// Creates a new [`PlatformBounds`] from a raw [`RECT`](windows::Win32::Foundation::RECT).
-        pub fn new(rect: RECT) -> Self {
-            Self(rect)
-        }
-
-        /// Returns the raw [`RECT`](windows::Win32::Foundation::RECT) structure.
-        pub fn sys(&self) -> &RECT {
-            &self.0
-        }
-
-        /// Returns the x-coordinate of the bounds.
-        pub fn x(&self) -> i32 {
-            self.0.left
-        }
-
-        /// Returns the y-coordinate of the bounds.
-        pub fn y(&self) -> i32 {
-            self.0.top
-        }
-
-        /// Returns the width of the bounds.
-        /// The width is calculated as `right - left`
-        /// by using [`RECT`](windows::Win32::Foundation::RECT).
-        pub fn width(&self) -> i32 {
-            self.0.right - self.0.left
-        }
-
-        /// Returns the height of the bounds.
-        /// The width is calculated as `bottom - top`
-        /// by using [`RECT`](windows::Win32::Foundation::RECT).
-        pub fn height(&self) -> i32 {
-            self.0.bottom - self.0.top
-        }
-
-        /// Returns the left coordinate of the bounds.
-        pub const fn left(&self) -> i32 {
-            self.0.left
-        }
-
-        /// Returns the top coordinate of the bounds.
-        pub const fn top(&self) -> i32 {
-            self.0.top
-        }
-
-        /// Returns the right coordinate of the bounds.
-        pub const fn right(&self) -> i32 {
-            self.0.right
-        }
-
-        /// Returns the bottom coordinate of the bounds.
-        pub const fn bottom(&self) -> i32 {
-            self.0.bottom
-        }
-    }
-}
-
-mod error {
-    pub use windows::core::Error as PlatformError;
-
-    impl From<windows::core::Error> for crate::Error {
-        fn from(error: windows::core::Error) -> Self {
->>>>>>> c7dce25d4f154c15fdefadeab2a2d2df43c2428a
             if error.code() == windows::Win32::Foundation::E_ACCESSDENIED {
                 Self::PermissionDenied(error)
             } else {
                 Self::PlatformSpecificError(error)
             }
-        }
-    }
-}
-
-mod window_id {
-    pub type WindowsWindowId = windows::Win32::Foundation::HWND;
-
-    use crate::WindowId;
-
-    impl From<WindowId> for WindowsWindowId {
-        fn from(id: WindowId) -> Self {
-            id.0
         }
     }
 }

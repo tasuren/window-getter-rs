@@ -60,22 +60,11 @@ impl Window {
     pub fn bounds(&self) -> Result<Bounds, Error> {
         #[cfg(target_os = "macos")]
         {
-<<<<<<< HEAD
-            Ok(self.0.bounds()?.into())
-        }
-        #[cfg(target_os = "windows")]
-        {
-            Ok(self.0.bounds()?.into())
-=======
             Ok(self.0.bounds().map(Bounds)?)
         }
         #[cfg(target_os = "windows")]
         {
-            self.0
-                .visible_bounds()
-                .map_err(Error::from)
-                .map(Bounds)
->>>>>>> c7dce25d4f154c15fdefadeab2a2d2df43c2428a
+            Ok(self.0.visible_bounds()?)
         }
     }
 

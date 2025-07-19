@@ -22,7 +22,7 @@ pub fn get_window(id: WindowId) -> Result<Option<Window>, Error> {
     }
     #[cfg(target_os = "windows")]
     {
-        Ok(platform_impl::get_window(id.into()))
+        Ok(platform_impl::get_window(*id.inner()))
     }
 }
 

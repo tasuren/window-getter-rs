@@ -47,7 +47,7 @@ impl From<u32> for WindowId {
         }
         #[cfg(target_os = "windows")]
         {
-            Self(PlatformWindowId(id as _))
+            Self(windows::Win32::Foundation::HWND(id as _))
         }
     }
 }
