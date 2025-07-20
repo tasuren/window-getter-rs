@@ -17,9 +17,14 @@ impl WindowId {
         Self(id)
     }
 
-    /// Returns the underlying platform-specific window identifier.
+    /// Returns the underlying platform-specific window identifier as a reference.
     pub fn inner(&self) -> &PlatformWindowId {
         &self.0
+    }
+
+    /// Returns the underlying platform-specific window identifier.
+    pub const fn into_inner(self) -> PlatformWindowId {
+        self.0
     }
 
     /// Converts the [`WindowId`] to a [`u32`].
