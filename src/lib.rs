@@ -18,7 +18,7 @@ pub use window::Window;
 pub fn get_window(id: WindowId) -> Result<Option<Window>, Error> {
     #[cfg(target_os = "macos")]
     {
-        platform_impl::get_window(id.into())
+        platform_impl::get_window(*id.inner())
     }
     #[cfg(target_os = "windows")]
     {

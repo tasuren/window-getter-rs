@@ -8,7 +8,7 @@ pub use window_info::WindowInfo;
 pub type PlatformBounds = objc2_core_foundation::CGRect;
 pub type PlatformError = error::MacOSError;
 pub type PlatformWindow = window::MacOSWindow;
-pub type PlatformWindowId = window_id::MacOSWindowId;
+pub type PlatformWindowId = objc2_core_graphics::CGWindowID;
 
 /// Retrieves a window by its unique identifier.
 pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
@@ -22,7 +22,7 @@ pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
     };
 
     for dict in list.iter() {
-        let window = PlatformWindow::new(unsafe { WindowInfo::new_unchecked(dict) });
+        let window = PlatformWindow::new(WindowInfo::new(dict));
         if window.id() == id {
             return Ok(Some(Window(window)));
         }
@@ -44,11 +44,7 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 
     let windows = list
         .iter()
-        .map(|dict| {
-            Window(PlatformWindow::new(unsafe {
-                WindowInfo::new_unchecked(dict)
-            }))
-        })
+        .map(|dict| Window(PlatformWindow::new(WindowInfo::new(dict))))
         .collect();
 
     Ok(windows)
@@ -189,14 +185,14 @@ mod window_info {
     impl WindowInfo {
         /// Creates a new `WindowInfo` from a retained dictionary.
         ///
-        /// # Safety
+        /// # Panics
         /// You must ensure that the dictionary is a valid representation of a window's information.
         /// See also the corresponding documentation [Required Window List Keys][required] and
         /// [Optional Window List Keys][optional] about a valid representation.
         ///
         /// [required]: <https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc>
         /// [optional]: <https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc>
-        pub unsafe fn new_unchecked(dict: CFRetained<CFDictionary<CFString, CFType>>) -> Self {
+        pub fn new(dict: CFRetained<CFDictionary<CFString, CFType>>) -> Self {
             Self(dict)
         }
 
@@ -225,20 +221,6 @@ mod window_info {
                 kCGWindowBackingLocationVideoMemory
             )
         );
-    }
-}
-
-mod window_id {
-    use objc2_core_graphics::CGWindowID;
-
-    use crate::window_id::WindowId;
-
-    pub type MacOSWindowId = CGWindowID;
-
-    impl From<WindowId> for MacOSWindowId {
-        fn from(value: WindowId) -> Self {
-            *value.inner()
-        }
     }
 }
 
