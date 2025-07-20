@@ -24,6 +24,16 @@ impl From<PlatformBounds> for Bounds {
     }
 }
 
+#[cfg(target_os = "macos")]
+impl From<Bounds> for PlatformBounds {
+    fn from(value: Bounds) -> Self {
+        PlatformBounds {
+            origin: objc2_core_foundation::CGPoint::new(value.x, value.y),
+            size: objc2_core_foundation::CGSize::new(value.width, value.height),
+        }
+    }
+}
+
 #[cfg(target_os = "windows")]
 impl From<PlatformBounds> for Bounds {
     fn from(value: PlatformBounds) -> Self {
@@ -32,6 +42,18 @@ impl From<PlatformBounds> for Bounds {
             y: value.top as _,
             width: (value.right - value.left) as _,
             height: (value.bottom - value.top) as _,
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl From<Bounds> for PlatformBounds {
+    fn from(value: Bounds) -> Self {
+        PlatformBounds {
+            left: value.x as _,
+            top: value.y as _,
+            right: (value.x + value.width) as _,
+            bottom: (value.y + value.height) as _,
         }
     }
 }
