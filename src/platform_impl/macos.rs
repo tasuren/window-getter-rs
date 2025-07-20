@@ -50,7 +50,7 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
     Ok(windows)
 }
 
-mod window {
+pub mod window {
     use std::mem::MaybeUninit;
 
     use objc2_core_foundation::CGRect;
@@ -60,7 +60,7 @@ mod window {
 
     use super::WindowInfo;
 
-    /// A wrapper around a window's information [WindowInfo].
+    /// A wrapper around a window's information [`WindowInfo`].
     #[derive(Clone, Debug)]
     pub struct MacOSWindow(pub(crate) WindowInfo);
 
@@ -122,7 +122,7 @@ mod window {
     }
 }
 
-mod window_info {
+pub mod window_info {
     use objc2_core_foundation::{CFBoolean, CFDictionary, CFNumber, CFRetained, CFString, CFType};
 
     macro_rules! impl_window_info_getters {
@@ -224,7 +224,7 @@ mod window_info {
     }
 }
 
-mod error {
+pub mod error {
     /// Low-level errors that can occur when interacting with the platform-specific API.
     #[derive(Debug, thiserror::Error)]
     pub enum MacOSError {
