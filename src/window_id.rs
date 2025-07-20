@@ -5,7 +5,10 @@ use crate::platform_impl::PlatformWindowId;
 ///
 /// # Platform-specific
 /// - **Windows**: The ID is a value of [`HWND`](windows::Win32::Foundation::HWND).
-/// - **macOS**: The ID is a unique within the current user session. It is called a window number.
+/// - **macOS**: The ID is a unique within the current user session.
+///   It is called a window number and same as [`CGWindowID`][CGWindowID].
+///
+/// [CGWindowID]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub struct WindowId(pub(crate) PlatformWindowId);
 
