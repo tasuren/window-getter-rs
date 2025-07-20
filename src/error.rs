@@ -6,7 +6,7 @@ pub enum Error {
     #[error("No window environment is running.")]
     NoWindowEnvironment,
     /// The error that occurs when you don't have permission to access the window property.
-    /// This can happen on Windows.  
+    /// This can happen on Windows.
     /// It represents [`E_ACCESSDENIED`][hresult] of [`HRESULT`](windows::core::HRESULT).
     ///
     /// [hresult]: <https://learn.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values>

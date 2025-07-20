@@ -60,7 +60,7 @@ impl Window {
     pub fn bounds(&self) -> Result<Bounds, Error> {
         #[cfg(target_os = "macos")]
         {
-            Ok(self.0.bounds().map(Bounds)?)
+            Ok(self.0.bounds()?)
         }
         #[cfg(target_os = "windows")]
         {

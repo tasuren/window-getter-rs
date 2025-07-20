@@ -60,7 +60,7 @@ mod window {
     use objc2_core_foundation::CGRect;
     use objc2_core_graphics::CGRectMakeWithDictionaryRepresentation;
 
-    use crate::platform_impl::macos::PlatformError;
+    use crate::{Bounds, platform_impl::macos::PlatformError};
 
     use super::WindowInfo;
 
@@ -94,8 +94,8 @@ mod window {
             self.0.name().map(|name| name.to_string())
         }
 
-        /// Returns the bounds of the window as a [`PlatformBounds`].
-        pub fn bounds(&self) -> Result<CGRect, PlatformError> {
+        /// Returns the bounds of the window as a [`Bounds`].
+        pub fn bounds(&self) -> Result<Bounds, PlatformError> {
             let bounds = self.0.bounds();
             let mut rect = MaybeUninit::<CGRect>::uninit();
 
@@ -104,7 +104,7 @@ mod window {
                     CGRectMakeWithDictionaryRepresentation(Some(&bounds), rect.as_mut_ptr());
 
                 if result {
-                    Ok(rect.assume_init())
+                    Ok(rect.assume_init().into())
                 } else {
                     Err(PlatformError::InvalidWindowBounds)
                 }

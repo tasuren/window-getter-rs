@@ -2,8 +2,8 @@ use std::fmt::Debug;
 
 use crate::platform_impl::PlatformBounds;
 
-/// A wrapper around the platform-specific bounds of a window.
-/// This struct provides a unified interface for accessing the bounds of a window,
+/// Represents the bounds of a window.
+/// It can be converted from platform-specific bounds types.
 #[derive(Debug, Clone, Default)]
 pub struct Bounds {
     pub x: f64,
