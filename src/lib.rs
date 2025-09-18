@@ -6,7 +6,7 @@ pub mod platform_impl;
 mod window;
 mod window_id;
 
-pub use crate::window_id::WindowId;
+pub use window_id::WindowId;
 pub use bounds::Bounds;
 pub use error::Error;
 pub use window::Window;
