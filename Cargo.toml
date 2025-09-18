@@ -35,3 +35,6 @@ features = ["CFNumber", "CFString", "CFDictionary"]
 version = "0.3.1"
 default-features = false
 features = ["CGGeometry", "CGWindow"]
+
+[package.metadata.docs.rs]
+targets = ["x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
