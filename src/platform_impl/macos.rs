@@ -224,6 +224,20 @@ pub mod window_info {
     }
 }
 
+/// Module for handling screen capture permissions on macOS.
+/// Most informations of the window cannot be retrieved without this permission. e.g. title
+pub mod permission {
+    /// Requests screen capture access permission from the user.
+    pub fn request_screen_capture_access() -> bool {
+        unsafe { objc2_core_graphics::CGRequestScreenCaptureAccess() }
+    }
+
+    /// Checks if the application has screen capture access permission.
+    pub fn has_screen_capture_access() -> bool {
+        unsafe { objc2_core_graphics::CGPreflightScreenCaptureAccess() }
+    }
+}
+
 pub mod error {
     /// Low-level errors that can occur when interacting with the platform-specific API.
     #[derive(Debug, thiserror::Error)]
