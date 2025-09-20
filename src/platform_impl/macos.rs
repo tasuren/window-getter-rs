@@ -76,7 +76,7 @@ pub mod window {
         }
 
         /// Consumes the object and extract the inner object [`WindowInfo`].
-        pub fn into_inner(self) -> WindowInfo {
+        pub fn into_window_info(self) -> WindowInfo {
             self.0
         }
 
