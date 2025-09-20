@@ -203,11 +203,11 @@ pub mod window_info {
             Self(dict)
         }
 
-        pub fn inner(&self) -> &WindowInfoDict {
+        pub fn window_info_dict(&self) -> &WindowInfoDict {
             &self.0
         }
 
-        pub fn into_inner(self) -> WindowInfoDict {
+        pub fn into_window_info_dict(self) -> WindowInfoDict {
             self.0
         }
 
