@@ -3,6 +3,7 @@ Cargo.lock
 
 # Editor
 *.code-workspace
+.zed/settings.json
 
 # OS
 .DS_Store
