@@ -75,6 +75,11 @@ pub mod window {
             &self.0
         }
 
+        /// Consumes the object and extract the inner object [`WindowInfo`].
+        pub fn into_inner(self) -> WindowInfo {
+            self.0
+        }
+
         /// Returns the window unique identifier.
         /// This is the window number.
         pub fn id(&self) -> u32 {
