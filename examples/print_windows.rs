@@ -5,7 +5,7 @@ fn main() {
     for window in windows {
         println!("\n{:?} ({})", window.title(), window.id().as_u32());
         println!("\tBounds: {:?}", window.bounds());
-        println!("\tProcess ID: {}", window.owner_pid().unwrap());
-        println!("\tProcess Name: {:?}", window.owner_name());
+        println!("\tProcess id: {}", window.owner_pid().unwrap());
+        println!("\tProcess name: {:?}", window.owner_name());
     }
 }
