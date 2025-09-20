@@ -5,7 +5,7 @@ use crate::{Error, Window};
 
 pub use error::MacOSError;
 pub use window::MacOSWindow;
-pub use window_info::WindowInfo;
+pub use window_info::{WindowInfo, WindowInfoDict};
 
 pub type MacOSBounds = objc2_core_foundation::CGRect;
 pub type MacOSWindowId = objc2_core_graphics::CGWindowID;
@@ -175,6 +175,8 @@ pub mod window_info {
         };
     }
 
+    pub type WindowInfoDict = CFRetained<CFDictionary<CFString, CFType>>;
+
     /// The wrapper for a window's dictionary representation.
     ///
     /// # See also
@@ -182,7 +184,7 @@ pub mod window_info {
     /// - [Required Window List Keys](https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc)
     /// - [Optional Window List Keys](https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc)
     #[derive(Clone, Debug, PartialEq, Eq)]
-    pub struct WindowInfo(CFRetained<CFDictionary<CFString, CFType>>);
+    pub struct WindowInfo(WindowInfoDict);
 
     unsafe impl Send for WindowInfo {}
     unsafe impl Sync for WindowInfo {}
@@ -197,12 +199,16 @@ pub mod window_info {
         ///
         /// [required]: <https://developer.apple.com/documentation/coregraphics/required-window-list-keys?language=objc>
         /// [optional]: <https://developer.apple.com/documentation/coregraphics/optional-window-list-keys?language=objc>
-        pub fn new(dict: CFRetained<CFDictionary<CFString, CFType>>) -> Self {
+        pub fn new(dict: WindowInfoDict) -> Self {
             Self(dict)
         }
 
-        pub fn sys(&self) -> &CFRetained<CFDictionary<CFString, CFType>> {
+        pub fn inner(&self) -> &WindowInfoDict {
             &self.0
+        }
+
+        pub fn into_inner(self) -> WindowInfoDict {
+            self.0
         }
 
         impl_window_info_getters!(
