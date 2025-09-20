@@ -3,7 +3,8 @@
 This is a Rust library for retrieving information about the windows open on the OS.
 Currently, it only supports macOS and Windows.
 
-![Crates.io Version](https://img.shields.io/crates/v/window-getter) ![docs.rs](https://img.shields.io/docsrs/window-getter)
+[![Crates.io Version](https://img.shields.io/crates/v/window-getter)](https://crates.io/crates/window-getter)
+[![docs.rs](https://img.shields.io/docsrs/window-getter)](https://docs.rs/window-getter/latest/window_getter/)
 
 ## Examples
 
