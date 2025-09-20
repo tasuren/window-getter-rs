@@ -85,6 +85,7 @@ pub mod window {
         }
 
         /// Returns the window's title.
+        /// If `None`, you may not have the permission.
         pub fn title(&self) -> Option<String> {
             self.0.name().map(|name| name.to_string())
         }

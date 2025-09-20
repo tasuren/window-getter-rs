@@ -43,7 +43,8 @@ impl Window {
     /// # Platform-specific
     /// - **Windows**: If you don't have permission to access the title,
     ///   it will return [`Error::PermissionDenied`](crate::Error::PermissionDenied).
-    /// - **macOS**: It will always return [`Ok`].
+    /// - **macOS**: It will always return [`Ok`]. Apple's documentation does not
+    ///   explicitly state this, but it returns `None` when the permission is not granted.
     pub fn title(&self) -> Result<Option<String>, Error> {
         #[cfg(target_os = "macos")]
         {
