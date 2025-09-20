@@ -33,7 +33,7 @@ impl WindowId {
     /// Converts the [`WindowId`] to a [`u32`].
     ///
     /// # Platform-specific
-    /// - **macOS**: Returns the window number. It is same as [`WindowId::inner`].
+    /// - **macOS**: Returns the window number. It is same as [`WindowId::platform_window_id`].
     /// - **Windows**: Returns the window handle as a `u32`.
     pub fn as_u32(&self) -> u32 {
         #[cfg(target_os = "macos")]
