@@ -6,10 +6,10 @@ pub mod platform_impl;
 mod window;
 mod window_id;
 
-pub use window_id::WindowId;
 pub use bounds::Bounds;
 pub use error::Error;
 pub use window::Window;
+pub use window_id::WindowId;
 
 /// Retrieves a window by its unique identifier.
 ///
@@ -18,11 +18,11 @@ pub use window::Window;
 pub fn get_window(id: WindowId) -> Result<Option<Window>, Error> {
     #[cfg(target_os = "macos")]
     {
-        platform_impl::get_window(*id.inner())
+        platform_impl::get_window(*id.platform_window_id())
     }
     #[cfg(target_os = "windows")]
     {
-        Ok(platform_impl::get_window(*id.inner()))
+        Ok(platform_impl::get_window(*id.platform_window_id()))
     }
 }
 

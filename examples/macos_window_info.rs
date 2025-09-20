@@ -3,7 +3,7 @@ fn main() {
     compile_error!("This example only supports macOS.");
 
     for window in window_getter::get_windows().unwrap() {
-        let window_info = window.into_inner().into_window_info();
+        let window_info = window.into_platform_window().into_window_info();
 
         println!(
             "{:?} ({}) memory usage: {} bytes",

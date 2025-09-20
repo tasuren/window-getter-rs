@@ -21,12 +21,12 @@ impl WindowId {
     }
 
     /// Returns the underlying platform-specific window identifier as a reference.
-    pub fn inner(&self) -> &PlatformWindowId {
+    pub fn platform_window_id(&self) -> &PlatformWindowId {
         &self.0
     }
 
     /// Returns the underlying platform-specific window identifier.
-    pub const fn into_inner(self) -> PlatformWindowId {
+    pub const fn into_platform_window_id(self) -> PlatformWindowId {
         self.0
     }
 

@@ -17,12 +17,12 @@ impl Window {
     }
 
     /// Retrieves the underlying platform-specific window.
-    pub fn inner(&self) -> &PlatformWindow {
+    pub fn platform_window(&self) -> &PlatformWindow {
         &self.0
     }
 
     /// Consumes the `Window` and returns the underlying platform-specific window.
-    pub fn into_inner(self) -> PlatformWindow {
+    pub fn into_platform_window(self) -> PlatformWindow {
         self.0
     }
 
