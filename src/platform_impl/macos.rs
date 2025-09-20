@@ -86,7 +86,6 @@ pub mod window {
 
         /// Returns the window's title.
         pub fn title(&self) -> Option<String> {
-            self.id();
             self.0.name().map(|name| name.to_string())
         }
 
