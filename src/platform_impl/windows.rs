@@ -3,21 +3,22 @@ use windows::{
     core::BOOL,
 };
 
-use crate::{Error, Window, platform_impl::windows::window::WindowsWindow};
+use crate::{Error, Window};
 
-pub type PlatformBounds = windows::Win32::Foundation::RECT;
-pub type PlatformError = error::WindowsError;
-pub type PlatformWindow = window::WindowsWindow;
-pub type PlatformWindowId = windows::Win32::Foundation::HWND;
+pub use error::WindowsError;
+pub use window::WindowsWindow;
+
+pub type WindowsBounds = windows::Win32::Foundation::RECT;
+pub type WindowsWindowId = windows::Win32::Foundation::HWND;
 
 /// Retrieves a window by its platform-specific identifier ([`HWND`](windows::Win32::Foundation::HWND)).
-pub fn get_window(id: PlatformWindowId) -> Option<Window> {
+pub fn get_window(id: WindowsWindowId) -> Option<Window> {
     let hwnd = id;
 
     if hwnd.is_invalid() || !unsafe { IsWindow(Some(hwnd)) }.as_bool() {
         None
     } else {
-        Some(Window(PlatformWindow::new(hwnd)))
+        Some(Window(WindowsWindow::new(hwnd)))
     }
 }
 
@@ -56,7 +57,7 @@ mod window {
 
     use crate::Bounds;
 
-    use super::PlatformError;
+    use super::WindowsError;
 
     /// Represents a window in the Windows platform.
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -82,7 +83,7 @@ mod window {
         }
 
         /// Returns the title of the window.
-        pub fn title(&self) -> Result<Option<String>, PlatformError> {
+        pub fn title(&self) -> Result<Option<String>, WindowsError> {
             let mut buffer = [0u16; 256];
             let length = unsafe { WindowsAndMessaging::GetWindowTextW(self.0, &mut buffer) };
 
@@ -104,7 +105,7 @@ mod window {
         ///
         /// It includes the invisible resize borders.
         /// So it may not be the same as the window rectangle that is actually seen.
-        pub fn rect(&self) -> Result<RECT, PlatformError> {
+        pub fn rect(&self) -> Result<RECT, WindowsError> {
             Ok(unsafe {
                 let mut rect = std::mem::zeroed();
                 GetWindowRect(self.0, &mut rect)?;
@@ -112,14 +113,14 @@ mod window {
             })
         }
 
-        /// This will return [`rect`](Self::rect) value wrapped in [`PlatformBounds`].
-        pub fn bounds(&self) -> Result<Bounds, PlatformError> {
+        /// This will return [`rect`](Self::rect) value wrapped in [`WindowsBounds`](super::WindowsBounds).
+        pub fn bounds(&self) -> Result<Bounds, WindowsError> {
             Ok(self.rect()?.into())
         }
 
         /// Returns the extended frame bounds of the window
         /// by [`DwmGetWindowAttribute`] with [`DWMWA_EXTENDED_FRAME_BOUNDS`].
-        pub fn extended_frame_bounds(&self) -> Result<RECT, PlatformError> {
+        pub fn extended_frame_bounds(&self) -> Result<RECT, WindowsError> {
             Ok(unsafe {
                 let mut rect: RECT = std::mem::zeroed();
                 DwmGetWindowAttribute(
@@ -134,13 +135,13 @@ mod window {
 
         /// Returns the bounds of the window.
         /// This will return [`extended_frame_bounds`](Self::extended_frame_bounds)
-        /// value wrapped in [`PlatformBounds`].
-        pub fn visible_bounds(&self) -> Result<Bounds, PlatformError> {
+        /// value wrapped in [`WindowsBounds`](super::WindowsBounds).
+        pub fn visible_bounds(&self) -> Result<Bounds, WindowsError> {
             Ok(self.extended_frame_bounds()?.into())
         }
 
         /// Returns the process ID of the owner of this window.
-        pub fn owner_pid(&self) -> Result<u32, PlatformError> {
+        pub fn owner_pid(&self) -> Result<u32, WindowsError> {
             let mut pid = 0;
             let thread =
                 unsafe { WindowsAndMessaging::GetWindowThreadProcessId(self.0, Some(&mut pid)) };
@@ -155,7 +156,7 @@ mod window {
         /// Returns the handle to the process that owns this window.
         pub fn owner_process_handle(
             &self,
-        ) -> Result<windows::Win32::Foundation::HANDLE, PlatformError> {
+        ) -> Result<windows::Win32::Foundation::HANDLE, WindowsError> {
             let pid = self.owner_pid()?;
             let process_handle = unsafe {
                 Threading::OpenProcess(
@@ -170,7 +171,7 @@ mod window {
 
         /// Returns the file name of the process that owns this window.
         /// This will return the name of the executable file.
-        pub fn owner_name(&self) -> Result<String, PlatformError> {
+        pub fn owner_name(&self) -> Result<String, WindowsError> {
             let process_handle = self.owner_process_handle()?;
 
             let mut buffer = [0u16; 256];
@@ -196,7 +197,7 @@ mod window {
     }
 }
 
-pub mod error {
+mod error {
     pub type WindowsError = windows::core::Error;
 
     impl From<WindowsError> for crate::Error {

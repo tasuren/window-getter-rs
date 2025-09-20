@@ -7,9 +7,11 @@ pub mod windows;
 
 #[cfg(target_os = "macos")]
 pub use macos::{
-    PlatformBounds, PlatformError, PlatformWindow, PlatformWindowId, get_window, get_windows,
+    MacOSBounds as PlatformBounds, MacOSError as PlatformError, MacOSWindow as PlatformWindow,
+    MacOSWindowId as PlatformWindowId, get_window, get_windows,
 };
 #[cfg(target_os = "windows")]
 pub use windows::{
-    PlatformBounds, PlatformError, PlatformWindow, PlatformWindowId, get_window, get_windows,
+    WindowsBounds as PlatformBounds, WindowsError as PlatformError,
+    WindowsWindow as PlatformWindow, WindowsWindowId as PlatformWindowId, get_window, get_windows,
 };

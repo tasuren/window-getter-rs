@@ -3,15 +3,15 @@ use objc2_core_graphics::{CGWindowListCopyWindowInfo, CGWindowListOption, kCGNul
 
 use crate::{Error, Window};
 
+pub use error::MacOSError;
+pub use window::MacOSWindow;
 pub use window_info::WindowInfo;
 
-pub type PlatformBounds = objc2_core_foundation::CGRect;
-pub type PlatformError = error::MacOSError;
-pub type PlatformWindow = window::MacOSWindow;
-pub type PlatformWindowId = objc2_core_graphics::CGWindowID;
+pub type MacOSBounds = objc2_core_foundation::CGRect;
+pub type MacOSWindowId = objc2_core_graphics::CGWindowID;
 
 /// Retrieves a window by its unique identifier.
-pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
+pub fn get_window(id: MacOSWindowId) -> Result<Option<Window>, Error> {
     let list: CFRetained<CFArray<CFDictionary<CFString, CFType>>> = unsafe {
         let list = CGWindowListCopyWindowInfo(CGWindowListOption::all(), id);
         let Some(list) = list else {
@@ -22,7 +22,7 @@ pub fn get_window(id: PlatformWindowId) -> Result<Option<Window>, Error> {
     };
 
     for dict in list.iter() {
-        let window = PlatformWindow::new(WindowInfo::new(dict));
+        let window = MacOSWindow::new(WindowInfo::new(dict));
         if window.id() == id {
             return Ok(Some(Window(window)));
         }
@@ -44,7 +44,7 @@ pub fn get_windows() -> Result<Vec<Window>, Error> {
 
     let windows = list
         .iter()
-        .map(|dict| Window(PlatformWindow::new(WindowInfo::new(dict))))
+        .map(|dict| Window(MacOSWindow::new(WindowInfo::new(dict))))
         .collect();
 
     Ok(windows)
@@ -56,9 +56,9 @@ pub mod window {
     use objc2_core_foundation::CGRect;
     use objc2_core_graphics::CGRectMakeWithDictionaryRepresentation;
 
-    use crate::{Bounds, platform_impl::macos::PlatformError};
+    use crate::Bounds;
 
-    use super::WindowInfo;
+    use super::{MacOSError, WindowInfo};
 
     /// A wrapper around a window's information [`WindowInfo`].
     #[derive(Clone, Debug)]
@@ -91,7 +91,7 @@ pub mod window {
         }
 
         /// Returns the bounds of the window as a [`Bounds`].
-        pub fn bounds(&self) -> Result<Bounds, PlatformError> {
+        pub fn bounds(&self) -> Result<Bounds, MacOSError> {
             let bounds = self.0.bounds();
             let mut rect = MaybeUninit::<CGRect>::uninit();
 
@@ -102,7 +102,7 @@ pub mod window {
                 if result {
                     Ok(rect.assume_init().into())
                 } else {
-                    Err(PlatformError::InvalidWindowBounds)
+                    Err(MacOSError::InvalidWindowBounds)
                 }
             }
         }

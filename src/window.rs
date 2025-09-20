@@ -71,7 +71,7 @@ impl Window {
     /// Returns the process ID of the window's owner.
     ///
     /// # Platform-specific
-    /// **macOS**: It will always return [`Ok`].
+    /// - **macOS**: It will always return [`Ok`].
     pub fn owner_pid(&self) -> Result<i32, Error> {
         #[cfg(target_os = "macos")]
         {
