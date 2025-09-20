@@ -88,7 +88,7 @@ mod window {
             let length = unsafe { WindowsAndMessaging::GetWindowTextW(self.0, &mut buffer) };
 
             if length == 0 {
-                let raw = windows::core::Error::from_win32();
+                let raw = windows::core::Error::from_thread();
 
                 return match raw.code() {
                     // If the length is 0 and error is success,
@@ -147,7 +147,7 @@ mod window {
                 unsafe { WindowsAndMessaging::GetWindowThreadProcessId(self.0, Some(&mut pid)) };
 
             if thread == 0 {
-                Err(windows::core::Error::from_win32())
+                Err(windows::core::Error::from_thread())
             } else {
                 Ok(pid)
             }
@@ -184,7 +184,7 @@ mod window {
             };
 
             if length == 0 {
-                return Err(windows::core::Error::from_win32());
+                return Err(windows::core::Error::from_thread());
             }
 
             Ok(String::from_utf16_lossy(&buffer[..length as usize]))
