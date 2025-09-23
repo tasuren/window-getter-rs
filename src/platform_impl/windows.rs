@@ -1,5 +1,9 @@
 use windows::{
-    Win32::{Foundation::LPARAM, UI::WindowsAndMessaging::IsWindow},
+    Win32::{
+        Foundation::LPARAM,
+        Foundation::{HWND, RECT},
+        UI::WindowsAndMessaging::IsWindow,
+    },
     core::BOOL,
 };
 
@@ -8,10 +12,10 @@ use crate::{Error, Window};
 pub use error::WindowsError;
 pub use window::WindowsWindow;
 
-pub type WindowsBounds = windows::Win32::Foundation::RECT;
-pub type WindowsWindowId = windows::Win32::Foundation::HWND;
+pub type WindowsBounds = RECT;
+pub type WindowsWindowId = HWND;
 
-/// Retrieves a window by its platform-specific identifier ([`HWND`](windows::Win32::Foundation::HWND)).
+/// Retrieves a window by its platform-specific identifier.
 pub fn get_window(id: WindowsWindowId) -> Option<Window> {
     let hwnd = id;
 
@@ -22,10 +26,7 @@ pub fn get_window(id: WindowsWindowId) -> Option<Window> {
     }
 }
 
-unsafe extern "system" fn enum_windows_callback(
-    hwnd: windows::Win32::Foundation::HWND,
-    lparam: LPARAM,
-) -> BOOL {
+unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> BOOL {
     let windows = unsafe { &mut *(lparam.0 as *mut Vec<Window>) };
     windows.push(Window(WindowsWindow::new(hwnd)));
 
@@ -67,12 +68,12 @@ mod window {
     unsafe impl Sync for WindowsWindow {}
 
     impl WindowsWindow {
-        /// Creates a new `PlatformWindow` from a raw [`HWND`].
+        /// Creates a new `WindowsWindow` from a raw `HWND`.
         ///
         /// # Warning
         /// You must ensure that the `hwnd` is a valid window handle. If you pass an invalid handle,
         /// it may lead to errors on methods.
-        /// You can use [`get_window`][super::get_window] to safely retrieve a `PlatformWindow`.
+        /// You can use [`get_window`][super::get_window] to safely retrieve a `WindowsWindow`.
         pub fn new(hwnd: HWND) -> Self {
             Self(hwnd)
         }

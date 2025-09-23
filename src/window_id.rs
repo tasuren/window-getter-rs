@@ -4,10 +4,11 @@ use crate::platform_impl::PlatformWindowId;
 /// It is used to track windows across different platforms.
 ///
 /// # Platform-specific
-/// - **Windows**: The ID is a value of [`HWND`](windows::Win32::Foundation::HWND).
+/// - **Windows**: The ID is a value of [`HWND`][HWND].
 /// - **macOS**: The ID is a unique within the current user session.
 ///   It is called a window number and same as [`CGWindowID`][CGWindowID].
 ///
+/// [HWND]: https://learn.microsoft.com/ja-jp/windows/win32/winprog/windows-data-types#HWND
 /// [CGWindowID]: https://developer.apple.com/documentation/coregraphics/cgwindowid?language=objc
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub struct WindowId(pub(crate) PlatformWindowId);
